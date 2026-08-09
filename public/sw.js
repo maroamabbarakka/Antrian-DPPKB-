@@ -1,7 +1,7 @@
-// sw.js — Service Worker Antrian DPPKB Majene (v5 — Voice Assets Cache)
-// Cache: app shell + SEMUA voice assets WAV lokal (offline-first audio)
+// sw.js — Service Worker Antrian DPPKB Majene (v6 — Voice Assets Cache & Offline Resilience)
+// Cache: app shell + SEMUA 30 voice assets WAV lokal (Dokumen 10 P1 #12)
 
-const CACHE_NAME = 'antri-dppkb-audio-v5';
+const CACHE_NAME = 'antri-dppkb-audio-v6';
 
 const CORE_ASSETS = [
   '/',
@@ -10,7 +10,7 @@ const CORE_ASSETS = [
   '/Logo_DPPKB.png'
 ];
 
-// Seluruh voice asset lokal — harus sesuai dengan queueAudioManifest.ts
+// Seluruh voice asset lokal — sesuai dengan queueAudioManifest.ts (tanpa chime.wav)
 const VOICE_ASSETS = [
   // Frasa
   '/audio/queue/phrases/nomor-antrean.wav',
@@ -54,10 +54,10 @@ const VOICE_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      // Core assets — strict (gagal satu = install gagal)
+      // Core assets — strict
       await cache.addAll(CORE_ASSETS);
 
-      // Voice assets — graceful (satu gagal tidak menghentikan install lainnya)
+      // Voice assets — graceful Promise.allSettled
       await Promise.allSettled(
         VOICE_ASSETS.map(async (url) => {
           try {

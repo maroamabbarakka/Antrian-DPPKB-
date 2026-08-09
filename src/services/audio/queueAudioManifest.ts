@@ -1,6 +1,7 @@
 // queueAudioManifest.ts — Daftar path terpusat semua voice asset lokal
 // Semua voice dipanggil dari /audio/queue/ — tidak ada remote TTS runtime.
 // KB WAJIB menggunakan: pelayanan-keluarga-berencana (bukan "KB" singkatan)
+// Note: Chime dihasilkan 100% via Web Audio Oscillator (tidak ada chime.wav)
 
 /** Kunci semua audio asset yang tersedia */
 export type AudioAssetKey =
@@ -22,15 +23,11 @@ export type AudioAssetKey =
   | 'counter.loket'
   | 'counter.1' | 'counter.2' | 'counter.3' | 'counter.4' | 'counter.5'
   | 'counter.6' | 'counter.7' | 'counter.8' | 'counter.9' | 'counter.10'
-  // Chime
-  | 'chime'
   // Jeda
   | 'pause.short';
 
 /** Pemetaan kunci ke URL path berkas lokal (sama-asal/same-origin) */
 export const AUDIO_MANIFEST: Record<Exclude<AudioAssetKey, 'pause.short'>, string> = {
-  chime: '/audio/queue/chime.wav',
-
   // ─── Frasa Umum ─────────────────────────────────────────────────────────
   'phrase.nomorAntrean':  '/audio/queue/phrases/nomor-antrean.wav',
   'phrase.silakanMenuju': '/audio/queue/phrases/silakan-menuju.wav',
@@ -76,7 +73,6 @@ export const AUDIO_MANIFEST: Record<Exclude<AudioAssetKey, 'pause.short'>, strin
 
 /** Asset yang WAJIB berhasil di-load — jika ini gagal, engine jangan READY */
 export const ESSENTIAL_ASSET_KEYS: Exclude<AudioAssetKey, 'pause.short'>[] = [
-  'chime',
   'phrase.nomorAntrean',
   'phrase.silakanMenuju',
   'phrase.pelayananKB',

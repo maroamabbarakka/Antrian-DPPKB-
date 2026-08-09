@@ -198,7 +198,7 @@ export const Navbar: React.FC = () => {
               id="btn-tes-audio"
               onClick={handleTestAudio}
               disabled={audioTestStatus === 'testing'}
-              title="Tes Suara Chime & Pemanggilan TTS (Nomor A-001, Loket 1, Pelayanan KB)"
+              title="Tes Audio Panggilan Lokal (A-001, Loket 1, Pelayanan Keluarga Berencana)"
               style={{
                 background: colors.bg,
                 border: `1px solid ${colors.border}`,

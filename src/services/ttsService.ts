@@ -33,22 +33,29 @@ class TTSService {
     return queueAudioEngine.playChime();
   }
 
-  /** Antreankan panggilan untuk diputar oleh engine */
+  /**
+   * Antreankan panggilan untuk diputar oleh engine.
+   * Dokumen 10 P0 #8: Teruskan `callId` asli dari Firestore call event!
+   */
   announceCall(
     ticketCode: string,
     counterName: string,
     serviceTitle?: string,
     serviceGroup?: ServiceGroup,
-    onComplete?: () => void
+    onComplete?: () => void,
+    callId?: string,
+    onError?: (err: string) => void
   ): void {
+    const finalCallId = callId || `${ticketCode}-${counterName}-${Date.now()}`;
     queueAudioEngine.queueCall({
-      id: `${ticketCode}-${counterName}-${Date.now()}`,
+      id: finalCallId,
       ticketCode,
       counterName,
       serviceTitle: serviceTitle || 'Pelayanan',
       serviceGroup: serviceGroup || (ticketCode.startsWith('B-') ? 'SK' : 'KB'),
       timestamp: Date.now(),
-      onComplete
+      onComplete,
+      onError
     });
   }
 
@@ -57,7 +64,7 @@ class TTSService {
 
   /**
    * Tes audio terstruktur — mengembalikan AudioTestResult lengkap (5 langkah).
-   * Section 37.1: wajib cek hasil unlock sebelum testCallFull().
+   * Cek hasil unlock sebelum testCallFull().
    */
   async testAudio(): Promise<AudioTestResult> {
     const unlocked = await queueAudioEngine.unlockFromUserGesture();

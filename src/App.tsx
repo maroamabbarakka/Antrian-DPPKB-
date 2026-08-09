@@ -18,6 +18,10 @@ const MainContainer: React.FC = () => {
     if (view === 'tv' || view === 'operator' || view === 'admin' || view === 'kiosk') {
       setActiveTab(view);
     }
+    // Dokumen 10 P1 #11: Prefetch raw ArrayBuffers sebelum user gesture
+    import('./services/audio/QueueAudioEngine').then(m => {
+      m.queueAudioEngine.prefetchAudioAssets();
+    });
   }, [setActiveTab]);
 
   const isDirectTV = window.location.search.includes('view=tv');

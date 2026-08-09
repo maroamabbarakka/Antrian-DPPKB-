@@ -1,7 +1,6 @@
 // QueueAudioEngine.ts — Engine Audio Deterministik Berbasis Web Audio API
-// Arsitektur Final (Dokumen 09): ONE AudioContext + Local Voice Assets
+// Arsitektur Final (Dokumen 09 & 10): ONE AudioContext + Local Voice Assets + Fail-Fast + onended Completion
 // TIDAK ADA: translate_tts runtime, speechSynthesis production, HTMLAudioElement voice
-// Semua voice diputar dari berkas WAV lokal via AudioBufferSourceNode
 
 import { audioBufferStore, withTimeout } from './AudioBufferStore';
 import {
@@ -9,11 +8,10 @@ import {
   getRequiredAssetKeys,
   VoiceSequenceInput
 } from './buildQueueVoiceSequence';
-import { AUDIO_MANIFEST, ESSENTIAL_ASSET_KEYS, AudioAssetKey } from './queueAudioManifest';
+import { ESSENTIAL_ASSET_KEYS } from './queueAudioManifest';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-/** State engine audio. Setiap state mempunyai makna spesifik. */
 export type AudioEngineState =
   | 'LOCKED'    // belum aktivasi dari user gesture
   | 'LOADING'   // sedang decode essential buffers
@@ -23,7 +21,7 @@ export type AudioEngineState =
   | 'ERROR';    // asset/decode/engine error fatal
 
 export interface AudioCallJob {
-  id: string;
+  id: string; // Firestore callEvent.id (atau ticket-counter ID)
   ticketCode: string;
   counterName: string;
   serviceTitle: string;
@@ -42,7 +40,6 @@ export interface PlaybackResult {
   error?: string;
 }
 
-/** Hasil tes audio terstruktur — setiap langkah dilaporkan */
 export interface AudioTestResult {
   success: boolean;
   durationMs: number;
@@ -78,13 +75,27 @@ class QueueAudioEngine {
 
   constructor() {
     if (typeof window !== 'undefined') {
-      // Visibility recovery — iOS dapat men-suspend AudioContext saat background
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
           this.checkAudioContextOnResume();
         }
       });
     }
+  }
+
+  // ─── Preload Audio Assets (Prefetch P1 Dokumen 10 #11) ────────────────────
+
+  /** Preload raw ArrayBuffers saat app startup sebelum user gesture */
+  async prefetchAudioAssets(): Promise<void> {
+    try {
+      const keys = ESSENTIAL_ASSET_KEYS as string[];
+      await Promise.allSettled(
+        keys.map(key => {
+          const url = `/audio/queue/${key.replace('.', '/s/')}.wav`;
+          return audioBufferStore.prefetch(key, url);
+        })
+      );
+    } catch {}
   }
 
   // ─── State Management ─────────────────────────────────────────────────────
@@ -126,7 +137,6 @@ class QueueAudioEngine {
     return ctx;
   }
 
-  /** Dipanggil saat app kembali ke foreground — iOS check */
   private checkAudioContextOnResume(): void {
     if (!this.audioCtx) return;
     if (this.audioCtx.state === 'suspended') {
@@ -139,13 +149,6 @@ class QueueAudioEngine {
 
   // ─── Activation (dari User Gesture) ──────────────────────────────────────
 
-  /**
-   * Aktivasi audio dari tombol "AKTIFKAN SUARA" — harus dipanggil dari user gesture.
-   * 1. Resume AudioContext
-   * 2. Load + decode essential buffers
-   * 3. Test chime singkat
-   * 4. Set state READY
-   */
   async unlockFromUserGesture(): Promise<boolean> {
     if (this.state === 'READY' || this.state === 'PLAYING') return true;
 
@@ -169,7 +172,7 @@ class QueueAudioEngine {
         throw new Error(`ESSENTIAL_BUFFERS_FAILED:${failed.map(f => f.key).join(',')}`);
       }
 
-      // Test chime singkat — verifikasi engine berfungsi
+      // Test chime singkat
       await this.playChimeInternal(ctx, { shortTest: true });
 
       this.updateState('READY');
@@ -191,7 +194,7 @@ class QueueAudioEngine {
 
   queueCall(job: AudioCallJob): void {
     if (this.receivedCallIds.has(job.id) || this.playedCallIds.has(job.id)) {
-      return; // Dedup — abaikan duplikat
+      return; // Dedup
     }
 
     console.info('[AUDIO-ENGINE]', { event: 'CALL_RECEIVED', callId: job.id, timestamp: Date.now() });
@@ -209,7 +212,6 @@ class QueueAudioEngine {
       return;
     }
 
-    // Tahan jika belum READY
     if (this.state === 'LOCKED' || this.state === 'LOADING' || this.state === 'BLOCKED' || this.state === 'ERROR') {
       console.warn('[AUDIO-ENGINE]', { event: 'QUEUE_HELD', state: this.state, queueLen: this.jobQueue.length });
       return;
@@ -230,7 +232,6 @@ class QueueAudioEngine {
     this.currentJob = null;
 
     if (result.success) {
-      // playedCallIds hanya diisi SETELAH seluruh voice sequence selesai
       this.playedCallIds.add(job.id);
       console.info('[AUDIO-ENGINE]', { event: 'PLAY_ENDED', callId: job.id, timestamp: Date.now() });
       if (job.onComplete) job.onComplete();
@@ -267,7 +268,7 @@ class QueueAudioEngine {
       const sequence = buildQueueVoiceSequence(seqInput);
       const requiredKeys = getRequiredAssetKeys(sequence);
 
-      // Pastikan semua buffer tersedia — load yang belum ada
+      // Load buffer yang belum ada
       const missing = audioBufferStore.getMissingKeys(requiredKeys);
       if (missing.length > 0) {
         const loadResults = await audioBufferStore.loadAll(missing, ctx);
@@ -283,7 +284,7 @@ class QueueAudioEngine {
       // SEMUA BUFFER READY → baru play chime
       await this.playChimeInternal(ctx);
 
-      // Play sequence voice
+      // Play sequence voice (Completion berbasis onended Dokumen 10 P0 #7)
       await this.playSequence(sequence, ctx);
 
       return { success: true, callId: job.id, startedAt, endedAt: Date.now() };
@@ -295,7 +296,7 @@ class QueueAudioEngine {
     }
   }
 
-  // ─── Chime (Web Audio API — oscillator) ──────────────────────────────────
+  // ─── Chime (Web Audio API — Oscillator) ──────────────────────────────────
 
   async playChime(): Promise<void> {
     const ctx = await this.ensureRunningContext();
@@ -337,42 +338,66 @@ class QueueAudioEngine {
     });
   }
 
-  // ─── Sequence Playback (AudioBufferSourceNode) ────────────────────────────
+  // ─── Sequence Playback (Dokumen 10 P0 #6 & #7: Fail-Fast Missing Buffer & onended Completion) ─────
 
   private async playSequence(sequence: string[], ctx: AudioContext): Promise<void> {
     let when = ctx.currentTime + 0.05;
     const PAUSE_SHORT_MS = 0.12;
 
+    let lastSourceNode: AudioBufferSourceNode | null = null;
+    let totalDurationMs = 0;
+
     for (const token of sequence) {
       if (token === 'pause.short') {
         when += PAUSE_SHORT_MS;
+        totalDurationMs += PAUSE_SHORT_MS * 1000;
         continue;
       }
 
       const buffer = audioBufferStore.get(token);
+
+      // Dokumen 10 P0 #6: Fail-Fast if buffer missing!
       if (!buffer) {
-        console.warn('[AUDIO-ENGINE] Buffer tidak ditemukan:', token);
-        continue;
+        throw new Error(`BUFFER_MISSING_DURING_PLAYBACK:${token}`);
       }
 
       const source = ctx.createBufferSource();
       source.buffer = buffer;
       source.connect(ctx.destination);
       source.start(when);
-      when += buffer.duration + 0.04; // gap antar kata
+
+      when += buffer.duration + 0.04;
+      totalDurationMs += (buffer.duration + 0.04) * 1000;
+      lastSourceNode = source;
     }
 
-    // Tunggu sampai seluruh sequence selesai
-    const waitMs = Math.max(0, (when - ctx.currentTime) * 1000 + 200);
-    await new Promise(r => setTimeout(r, waitMs));
+    if (!lastSourceNode) {
+      return; // Sequence kosong
+    }
+
+    // Dokumen 10 P0 #7: Completion berbasis onended pada source terakhir + safety timeout
+    return new Promise<void>((resolve, reject) => {
+      let isDone = false;
+
+      const timeout = setTimeout(() => {
+        if (!isDone) {
+          isDone = true;
+          reject(new Error('VOICE_SEQUENCE_TIMEOUT'));
+        }
+      }, totalDurationMs + 3500); // Safety margin 3.5 detik
+
+      lastSourceNode!.onended = () => {
+        if (!isDone) {
+          isDone = true;
+          clearTimeout(timeout);
+          resolve();
+        }
+      };
+    });
   }
 
   // ─── Tes Audio Terstruktur ────────────────────────────────────────────────
 
-  /**
-   * Tes audio penuh — melaporkan setiap langkah secara terpisah.
-   * Tidak menggunakan Google TTS atau Web Speech — hanya local engine.
-   */
   async testCallFull(): Promise<AudioTestResult> {
     const startMs = Date.now();
     const steps: AudioTestResult['steps'] = {
@@ -432,7 +457,7 @@ class QueueAudioEngine {
       return { success: false, durationMs: Date.now() - startMs, steps };
     }
 
-    // Step 5: Voice sequence
+    // Step 5: Voice sequence (Completion berbasis onended)
     try {
       await this.playSequence(testSequence, ctx!);
       steps.voice = { success: true };
@@ -462,6 +487,3 @@ class QueueAudioEngine {
 }
 
 export const queueAudioEngine = new QueueAudioEngine();
-
-// Re-export untuk komponen UI
-export type { AudioAssetKey };

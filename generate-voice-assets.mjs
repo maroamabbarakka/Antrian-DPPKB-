@@ -1,9 +1,6 @@
 // generate-voice-assets.mjs
-// Script Node.js untuk menghasilkan berkas WAV voice lokal menggunakan
-// Google TTS (sekali saja — offline setelah ini). Tidak perlu di-run ulang.
-// Berkas disimpan di public/audio/queue/**
-//
-// Cara menjalankan: node generate-voice-assets.mjs
+// Script Node.js untuk mendownload dan menyimpan berkas WAV voice lokal
+// Memastikan frasa 'silakan-menuju' adalah "Silakan menuju" (tanpa kata Loket)
 
 import fs from 'fs';
 import path from 'path';
@@ -15,9 +12,9 @@ const OUTPUT_BASE = path.join(__dirname, 'public', 'audio', 'queue');
 
 /** Semua teks yang perlu di-download */
 const ASSETS = [
-  // Frasa
+  // Frasa (PERBAIKAN P0: 'silakan-menuju' = 'Silakan menuju', tanpa kata 'Loket')
   { key: 'phrases/nomor-antrean',            text: 'Nomor antrean' },
-  { key: 'phrases/silakan-menuju',           text: 'Silakan menuju Loket' },
+  { key: 'phrases/silakan-menuju',           text: 'Silakan menuju' },
   { key: 'phrases/pelayanan-keluarga-berencana', text: 'Pelayanan Keluarga Berencana' },
   { key: 'phrases/pelayanan-sekretariat',    text: 'Pelayanan Sekretariat' },
 
@@ -65,7 +62,14 @@ function downloadFile(url, destPath) {
   return new Promise((resolve, reject) => {
     const dir = path.dirname(destPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    if (fs.existsSync(destPath)) { resolve('SKIP'); return; }
+
+    // Hapus file lama jika ini adalah silakan-menuju untuk dipastikan ter-update
+    if (destPath.includes('silakan-menuju') && fs.existsSync(destPath)) {
+      fs.unlinkSync(destPath);
+    } else if (fs.existsSync(destPath)) {
+      resolve('SKIP');
+      return;
+    }
 
     const file = fs.createWriteStream(destPath);
     const options = {
@@ -115,8 +119,7 @@ async function main() {
         console.log(`  ✅ OK    ${asset.key}.wav`);
         ok++;
       }
-      // Jeda kecil agar tidak kena rate limit
-      await new Promise(r => setTimeout(r, 350));
+      await new Promise(r => setTimeout(r, 200));
     } catch (err) {
       console.error(`  ❌ FAIL  ${asset.key}.wav — ${err.message}`);
       fail++;

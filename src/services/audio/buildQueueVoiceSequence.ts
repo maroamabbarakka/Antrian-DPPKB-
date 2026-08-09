@@ -2,8 +2,9 @@
 // Input: ticketCode, counterName, serviceGroup
 // Output: AudioAssetKey[] token sequence yang siap diputar oleh engine
 //
-// ATURAN WAJIB: KB harus selalu menggunakan token 'phrase.pelayananKB'
-// yang berbunyikan "Pelayanan Keluarga Berencana" — TIDAK PERNAH singkatan.
+// ATURAN WAJIB (Dokumen 10 P0 #5 — Fail-Fast Parser):
+// Throw error jika serviceGroup, counterName, atau ticketCode invalid!
+// KB WAJIB selalu menggunakan token 'phrase.pelayananKB' = "Pelayanan Keluarga Berencana"
 
 import { AudioAssetKey } from './queueAudioManifest';
 
@@ -34,6 +35,16 @@ export interface VoiceSequenceInput {
 export function buildQueueVoiceSequence(
   input: VoiceSequenceInput
 ): VoiceToken[] {
+  if (!input.ticketCode || typeof input.ticketCode !== 'string') {
+    throw new Error(`INVALID_TICKET_CODE:${input.ticketCode}`);
+  }
+  if (!input.counterName || typeof input.counterName !== 'string') {
+    throw new Error(`INVALID_COUNTER_NAME:${input.counterName}`);
+  }
+  if (!input.serviceGroup || typeof input.serviceGroup !== 'string') {
+    throw new Error(`UNSUPPORTED_SERVICE_GROUP:${input.serviceGroup}`);
+  }
+
   const sequence: VoiceToken[] = [];
 
   // ─── Bagian 1: "Nomor antrean [HURUF] [DIGIT DIGIT DIGIT]" ──────────
@@ -46,17 +57,20 @@ export function buildQueueVoiceSequence(
   sequence.push('pause.short');
 
   // ─── Bagian 2: "Silakan menuju Loket [ANGKA]" ────────────────────────
+  // Note P0 Dokumen 10: 'phrase.silakanMenuju' adalah "Silakan menuju".
+  // 'counter.loket' adalah "Loket". Kombinasi ini = "Silakan menuju Loket X".
   sequence.push('phrase.silakanMenuju');
   sequence.push('counter.loket');
 
   const counterNumber = parseCounterNumber(input.counterName);
-  if (counterNumber >= 1 && counterNumber <= 10) {
-    sequence.push(`counter.${counterNumber}` as VoiceToken);
+  if (counterNumber < 1 || counterNumber > 10) {
+    throw new Error(`INVALID_COUNTER_NUMBER:${counterNumber} (dari ${input.counterName})`);
   }
+  sequence.push(`counter.${counterNumber}` as VoiceToken);
 
   sequence.push('pause.short');
 
-  // ─── Bagian 3: Nama layanan ───────────────────────────────────────────
+  // ─── Bagian 3: Nama pelayanan (Fail-Fast) ───────────────────────────
   const serviceToken = resolveServiceToken(input.serviceGroup);
   sequence.push(serviceToken);
 
@@ -67,29 +81,37 @@ export function buildQueueVoiceSequence(
 
 /**
  * Parse kode tiket menjadi huruf + digit.
- * "A-001" → letters: ['letter.a'], digits: ['digit.0', 'digit.0', 'digit.1']
- * "B-012" → letters: ['letter.b'], digits: ['digit.0', 'digit.1', 'digit.2']
+ * Fail-fast jika format tiket tidak valid!
  */
 function parseTicketCode(ticketCode: string): {
   letterTokens: VoiceToken[];
   digitTokens: VoiceToken[];
 } {
-  const parts = ticketCode.split('-');
-  const letterPart = (parts[0] || 'A').toLowerCase();
-  const numberPart = parts[1] || '001';
+  const cleanCode = ticketCode.trim();
+  const parts = cleanCode.split('-');
+  if (parts.length < 2) {
+    throw new Error(`INVALID_TICKET_CODE_FORMAT:${ticketCode}`);
+  }
 
+  const letterPart = parts[0].toLowerCase();
+  const numberPart = parts[1];
+
+  const validLetters = ['a', 'b', 'c', 'd', 'e'];
   const letterTokens: VoiceToken[] = [];
   for (const char of letterPart) {
-    const key = `letter.${char}` as VoiceToken;
-    letterTokens.push(key);
+    if (!validLetters.includes(char)) {
+      throw new Error(`UNSUPPORTED_TICKET_LETTER:${char} (dari ${ticketCode})`);
+    }
+    letterTokens.push(`letter.${char}` as VoiceToken);
   }
 
   const digitTokens: VoiceToken[] = [];
   for (const char of numberPart) {
     const digit = parseInt(char, 10);
-    if (!isNaN(digit)) {
-      digitTokens.push(`digit.${digit}` as VoiceToken);
+    if (isNaN(digit) || digit < 0 || digit > 9) {
+      throw new Error(`INVALID_TICKET_DIGIT:${char} (dari ${ticketCode})`);
     }
+    digitTokens.push(`digit.${digit}` as VoiceToken);
   }
 
   return { letterTokens, digitTokens };
@@ -97,32 +119,30 @@ function parseTicketCode(ticketCode: string): {
 
 /**
  * Ekstrak nomor loket dari nama loket.
- * "Loket 1" → 1, "Loket 10" → 10
+ * Fail-fast jika tidak ada angka loket!
  */
 function parseCounterNumber(counterName: string): number {
   const match = counterName.match(/\d+/);
-  if (!match) return 1;
+  if (!match) {
+    throw new Error(`INVALID_COUNTER_NAME_NO_DIGITS:${counterName}`);
+  }
   return parseInt(match[0], 10);
 }
 
 /**
- * Tentukan token layanan berdasarkan serviceGroup.
- *
+ * Tentukan token layanan berdasarkan serviceGroup (Fail-Fast P0 Dokumen 10).
  * KB → 'phrase.pelayananKB' = "Pelayanan Keluarga Berencana"
  * SK → 'phrase.pelayananSK' = "Pelayanan Sekretariat"
- * Default → 'phrase.pelayananSK' (fallback aman)
- *
- * WAJIB: Tidak ada kode yang menghasilkan teks singkatan "KB" dalam speech path.
+ * Lainnya → Throw Error UNSUPPORTED_SERVICE_GROUP
  */
 function resolveServiceToken(serviceGroup: string): VoiceToken {
-  const group = serviceGroup.toUpperCase();
+  const group = serviceGroup.toUpperCase().trim();
   if (group === 'KB') return 'phrase.pelayananKB';
   if (group === 'SK') return 'phrase.pelayananSK';
-  // Fallback aman — lebih baik sebut SK daripada diam
-  return 'phrase.pelayananSK';
+  throw new Error(`UNSUPPORTED_SERVICE_GROUP:${serviceGroup}`);
 }
 
-/** Dapatkan semua key unik yang dibutuhkan untuk sequence ini (untuk preload) */
+/** Dapatkan semua key unik yang dibutuhkan untuk sequence ini */
 export function getRequiredAssetKeys(sequence: VoiceToken[]): string[] {
   return [...new Set(sequence.filter(t => t !== 'pause.short'))];
 }

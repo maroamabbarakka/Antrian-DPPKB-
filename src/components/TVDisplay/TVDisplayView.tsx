@@ -284,8 +284,9 @@ export const TVDisplayView: React.FC = () => {
                   ref={videoRef}
                   src={videoError ? fallbackVideoUrl : (currentMedia.url || defaultMedia.url)}
                   autoPlay
+                  playsInline
                   loop={activeMedia.length <= 1}
-                  muted={videoMuted}
+                  muted={true}
                   onEnded={() => {
                     setVideoError(false);
                     if (activeMedia.length <= 1) {

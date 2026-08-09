@@ -203,7 +203,7 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCallOverlay({ active: true, ticketCode, counterName, serviceTitle, serviceGroup });
 
     if (activeTabRef.current === 'tv') {
-      ttsService.announceCall(ticketCode, counterName, serviceTitle, serviceGroup);
+      ttsService.announceCall(ticketCode, counterName, serviceTitle, serviceGroup, undefined, uniqueId);
     }
 
     overlayTimeoutRef.current = window.setTimeout(() => {
