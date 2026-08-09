@@ -1,5 +1,5 @@
-// QueueAudioEngine.ts — Engine Panggilan Audio Terpusat & Reliabel untuk Antrean DPPKB Majene
-// Mendukung Persistent HTMLAudioElement, User Gesture Unlock Gate, Retry Queue & Multi-Tier Fallback
+// QueueAudioEngine.ts — Engine Panggilan Audio Terpusat & Reliabel (P0 Patch) untuk Antrean DPPKB Majene
+// Menangani Persistent HTMLAudioElement, User Gesture Unlock Gate, Anti-Overlap, & Strict Fallback
 
 import {
   buildAnnouncementText,
@@ -27,7 +27,7 @@ export interface AudioCallJob {
 
 export interface PlaybackResult {
   success: boolean;
-  source?: 'SERVER_MP3' | 'WEB_SPEECH' | 'CHIME_ONLY';
+  source?: 'SERVER_MP3' | 'WEB_SPEECH';
   error?: string;
 }
 
@@ -49,7 +49,6 @@ class QueueAudioEngine {
   private listeners = new Set<EngineStateListener>();
 
   constructor() {
-    // Cek apakah browser pernah mengizinkan audio sebelumnya
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.onvoiceschanged = () => {
         window.speechSynthesis.getVoices();
@@ -61,6 +60,16 @@ class QueueAudioEngine {
     this.player = player;
     this.player.preload = 'auto';
     this.player.volume = 1.0;
+  }
+
+  public unbindPlayer(): void {
+    if (this.player) {
+      try {
+        this.player.pause();
+        this.player.src = '';
+      } catch {}
+    }
+    this.player = null;
   }
 
   public getState(): AudioEngineState {
@@ -98,39 +107,42 @@ class QueueAudioEngine {
   public async unlockFromUserGesture(): Promise<boolean> {
     this.updateState('UNLOCKING');
 
+    if (!this.player) {
+      console.warn('[QueueAudioEngine] persistent player belum terikat (unbound)');
+      this.updateState('BLOCKED');
+      return false;
+    }
+
     let mediaSuccess = false;
-    let audioCtxSuccess = false;
 
     try {
       const ctx = this.getAudioContext();
       if (ctx.state === 'suspended') {
         await ctx.resume();
       }
-      audioCtxSuccess = ctx.state === 'running';
     } catch (err) {
       console.warn('[QueueAudioEngine] AudioContext resume failed:', err);
     }
 
-    if (this.player) {
-      try {
-        this.player.pause();
-        this.player.src = '/audio/audio-ready.mp3';
-        this.player.currentTime = 0;
-        await this.player.play();
-        mediaSuccess = true;
-      } catch (mediaErr: any) {
-        console.warn('[QueueAudioEngine] Persistent player unlock failed:', mediaErr);
-        if (mediaErr?.name === 'NotAllowedError') {
-          this.updateState('BLOCKED');
-          return false;
-        }
+    try {
+      this.player.pause();
+      this.player.src = '/audio/audio-ready.mp3';
+      this.player.currentTime = 0;
+      await this.player.play();
+      mediaSuccess = true;
+    } catch (mediaErr: any) {
+      console.warn('[QueueAudioEngine] Persistent player unlock failed:', mediaErr);
+      if (mediaErr?.name === 'NotAllowedError') {
+        this.updateState('BLOCKED');
+        return false;
       }
+      this.updateState('ERROR');
+      return false;
     }
 
-    if (mediaSuccess || audioCtxSuccess) {
+    if (mediaSuccess) {
       this.updateState('READY');
-
-      // Jika ada job yang tertunda di antrean karena autolock sebelumnya, proses sekarang!
+      // Jalankan antrean panggilan jika ada job tertunda
       this.processQueue();
       return true;
     }
@@ -152,6 +164,21 @@ class QueueAudioEngine {
     this.processQueue();
   }
 
+  /**
+   * Panggilan pengujian dari tombol "Test Call"
+   */
+  public async testCall(): Promise<PlaybackResult> {
+    const testJob: AudioCallJob = {
+      id: `test-call-${Date.now()}`,
+      ticketCode: 'A-001',
+      counterName: 'Loket 1',
+      serviceTitle: 'Pelayanan KB',
+      serviceGroup: 'KB',
+      timestamp: Date.now()
+    };
+    return this.executeCallJob(testJob);
+  }
+
   private async processQueue(): Promise<void> {
     if (this.isProcessing) return;
     if (this.jobQueue.length === 0) {
@@ -161,19 +188,16 @@ class QueueAudioEngine {
       return;
     }
 
+    // Tahan antrean jika state masih LOCKED, BLOCKED, atau UNLOCKING
+    if (this.state === 'LOCKED' || this.state === 'BLOCKED' || this.state === 'UNLOCKING') {
+      console.warn('[QueueAudioEngine] Audio engine locked/blocked/unlocking. Menahan panggilan.');
+      return;
+    }
+
     this.isProcessing = true;
     const job = this.jobQueue.shift()!;
     this.currentJob = job;
     this.inFlightCallIds.add(job.id);
-
-    if (this.state === 'LOCKED' || this.state === 'BLOCKED') {
-      console.warn('[QueueAudioEngine] Audio engine locked/blocked. Menahan panggilan:', job.ticketCode);
-      // Kembalikan job ke urutan depan antrean agar tidak hilang
-      this.jobQueue.unshift(job);
-      this.inFlightCallIds.delete(job.id);
-      this.isProcessing = false;
-      return;
-    }
 
     this.updateState('PLAYING');
 
@@ -218,7 +242,7 @@ class QueueAudioEngine {
       await this.playPersistentAudioSrc(mp3Url);
       return { success: true, source: 'SERVER_MP3' };
     } catch (mp3Err: any) {
-      console.warn('[QueueAudioEngine] MP3 Server gagal, menggunakan Web Speech API fallback:', mp3Err);
+      console.warn('[QueueAudioEngine] MP3 Server gagal, menguji Web Speech API fallback:', mp3Err);
       if (mp3Err?.name === 'NotAllowedError') {
         this.updateState('BLOCKED');
         return { success: false, error: 'NotAllowedError' };
@@ -231,7 +255,7 @@ class QueueAudioEngine {
       return { success: true, source: 'WEB_SPEECH' };
     } catch (speechErr: any) {
       console.warn('[QueueAudioEngine] Web Speech API gagal:', speechErr);
-      return { success: true, source: 'CHIME_ONLY' };
+      return { success: false, error: speechErr?.message || 'VOICE_NOT_PLAYED' };
     }
   }
 
@@ -253,9 +277,14 @@ class QueueAudioEngine {
       }
 
       const player = this.player;
+      let started = false;
+      let done = false;
 
       const cleanup = () => {
+        if (done) return;
+        done = true;
         clearTimeout(startTimeout);
+        clearTimeout(finishTimeout);
         player.onplaying = null;
         player.onended = null;
         player.onerror = null;
@@ -267,6 +296,11 @@ class QueueAudioEngine {
       player.preload = 'auto';
       player.currentTime = 0;
 
+      player.onplaying = () => {
+        started = true;
+        clearTimeout(startTimeout); // Batalkan start timeout begitu audio mulai terputar!
+      };
+
       player.onended = () => {
         cleanup();
         resolve();
@@ -277,10 +311,23 @@ class QueueAudioEngine {
         reject(new Error(`Playback Error: ${player.error?.code || 'Unknown'}`));
       };
 
+      // Start Timeout 4.5 detik: jika audio tidak mulai memutar, hentikan player agar TIDAK OVERLAP!
       const startTimeout = setTimeout(() => {
+        if (!started) {
+          cleanup();
+          try {
+            player.pause();
+            player.currentTime = 0;
+          } catch {}
+          reject(new Error('Audio playback start timeout'));
+        }
+      }, 4500);
+
+      // Finish Timeout 15 detik untuk keamanan
+      const finishTimeout = setTimeout(() => {
         cleanup();
-        reject(new Error('Audio Playback Timeout (10s)'));
-      }, 10000);
+        resolve();
+      }, 15000);
 
       const playPromise = player.play();
       if (playPromise) {
@@ -324,12 +371,14 @@ class QueueAudioEngine {
   }
 
   private speakWebSpeech(text: string): Promise<void> {
-    if (!('speechSynthesis' in window)) {
-      return Promise.resolve();
+    if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
+      return Promise.reject(new Error('WEB_SPEECH_UNAVAILABLE'));
     }
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const synth = window.speechSynthesis;
+      let done = false;
+
       try {
         synth.cancel();
         synth.resume();
@@ -350,23 +399,35 @@ class QueueAudioEngine {
 
       if (idVoice) utterance.voice = idVoice;
 
-      let done = false;
-      const finish = () => {
+      const cleanup = () => {
         if (done) return;
         done = true;
         clearTimeout(timeout);
+      };
+
+      utterance.onend = () => {
+        cleanup();
         resolve();
       };
 
-      utterance.onend = finish;
-      utterance.onerror = finish;
+      utterance.onerror = (evt) => {
+        cleanup();
+        reject(new Error(`WEB_SPEECH_ERROR:${evt.error || 'unknown'}`));
+      };
 
-      const timeout = setTimeout(finish, 12000);
+      const timeout = setTimeout(() => {
+        cleanup();
+        try {
+          synth.cancel();
+        } catch {}
+        reject(new Error('WEB_SPEECH_TIMEOUT'));
+      }, 12000);
 
       try {
         synth.speak(utterance);
-      } catch {
-        finish();
+      } catch (err) {
+        cleanup();
+        reject(err);
       }
     });
   }

@@ -20,13 +20,8 @@ export const TVDisplayView: React.FC = () => {
   const [audioEngineState, setAudioEngineState] = useState<AudioEngineState>('LOCKED');
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const queueAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Bind persistent audio element ke QueueAudioEngine
   useEffect(() => {
-    if (queueAudioRef.current) {
-      queueAudioEngine.bindPlayer(queueAudioRef.current);
-    }
     const unsubscribe = queueAudioEngine.subscribeState((state) => {
       setAudioEngineState(state);
     });
@@ -202,9 +197,6 @@ export const TVDisplayView: React.FC = () => {
 
   return (
     <div className="tv-screen" onClick={handleActivateAudio}>
-      {/* Persistent HTMLAudioElement untuk QueueAudioEngine */}
-      <audio ref={queueAudioRef} preload="auto" style={{ display: 'none' }} />
-
       {/* Header Bar TV Presisi */}
       <header className="tv-header">
         <div className="tv-logo-area">

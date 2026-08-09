@@ -12,6 +12,16 @@
     "04_OFFLINE_PWA_AND_MEDIA_RESILIENCE.md",
     "05_CODE_ARCHITECTURE_AND_DIAGNOSTICS.md",
     "06_TESTING_ACCEPTANCE_AND_ROLLOUT.md",
-    "07_DEVICE_COMPATIBILITY_TEMPLATE.md"
-  ]
+    "07_DEVICE_COMPATIBILITY_TEMPLATE.md",
+    "08_AUDIO_TEST_FINDINGS_AND_DEV_PATCH.md"
+  ],
+  "test_harnesses": [
+    "tests/audio/audio_engine_logic_harness.mjs",
+    "tests/audio/audio_engine_patch_harness.mjs"
+  ],
+  "priority_update": {
+    "phase": "P0",
+    "document": "08_AUDIO_TEST_FINDINGS_AND_DEV_PATCH.md",
+    "reason": "Actual iPhone recording + source test reproduced chime-only voice failure modes."
+  }
 }

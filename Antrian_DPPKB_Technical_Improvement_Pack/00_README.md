@@ -29,6 +29,34 @@ https://github.com/maroamabbarakka/Antrian-DPPKB-
 - Perubahan business-critical antrean harus sebisa mungkin transactional.
 - Semua failure penting harus terlihat, tercatat, dan dapat dipulihkan.
 
+
+## Phase 0 — Hasil Pengujian Audio Aktual
+
+**Kerjakan ini terlebih dahulu sebelum Phase 1.**
+
+```text
+08_AUDIO_TEST_FINDINGS_AND_DEV_PATCH.md
+```
+
+Dokumen ini berisi temuan dari rekaman iPhone dan test harness aktual, termasuk:
+
+- persistent audio player hanya tersedia di TV Display,
+- `testAudio()` tidak menunggu unlock,
+- false `READY`,
+- Web Speech error/unavailable dianggap sukses,
+- `CHIME_ONLY` salah dianggap sukses,
+- bug timeout MP3,
+- rekomendasi `GlobalAudioHost`,
+- rekomendasi same-origin/WebAudio sebagai Phase P1 bila P0 belum cukup.
+
+Harness pengujian tersedia di:
+
+```text
+tests/audio/audio_engine_logic_harness.mjs
+tests/audio/audio_engine_patch_harness.mjs
+```
+
+
 ## Urutan pengerjaan
 
 ### Phase 1 — Audio Critical Fix

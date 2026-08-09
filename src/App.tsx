@@ -6,12 +6,12 @@ import { OperatorView } from './components/Operator/OperatorView';
 import { TVDisplayView } from './components/TVDisplay/TVDisplayView';
 import { AdminView } from './components/Admin/AdminView';
 import { DebugOverlay } from './components/Common/DebugOverlay';
+import { GlobalAudioHost } from './components/Common/GlobalAudioHost';
 import './styles/index.css';
 
 const MainContainer: React.FC = () => {
   const { activeTab, setActiveTab } = useQueue();
 
-  // Cek query parameter ?view=... dari URL saat komponen pertama kali dimuat
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const view = params.get('view');
@@ -20,7 +20,6 @@ const MainContainer: React.FC = () => {
     }
   }, [setActiveTab]);
 
-  // Jika di mode TV, tampilkan TV Display full tanpa navbar atas untuk pengalaman monitor TV murni
   const isDirectTV = window.location.search.includes('view=tv');
 
   if (activeTab === 'tv') {
@@ -61,6 +60,7 @@ const MainContainer: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <QueueProvider>
+      <GlobalAudioHost />
       <MainContainer />
     </QueueProvider>
   );
