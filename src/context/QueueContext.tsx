@@ -8,14 +8,14 @@ import {
   getTodayStrWITA
 } from '../services/queueService';
 import { ttsService } from '../services/ttsService';
+import { queueAudioEngine } from '../services/audio/QueueAudioEngine';
+import { queueRepository } from '../services/queue/queueRepository';
 import { db } from '../config/firebase';
 import {
   collection,
   doc,
-  getDocs,
   onSnapshot,
   query,
-  runTransaction,
   setDoc,
   where
 } from 'firebase/firestore';
@@ -40,11 +40,11 @@ interface QueueContextType {
   } | null;
   issueTicket: (service: ServiceItem, priorityClass?: 'REGULAR' | 'PRIORITY') => Promise<Ticket>;
   callNextTicket: (counterId: string) => Promise<Ticket | null>;
-  recallTicket: (ticketId: string) => void;
+  recallTicket: (ticketId: string) => Promise<void>;
   startServiceTicket: (ticketId: string) => void;
   completeTicket: (ticketId: string) => void;
   markNoShowTicket: (ticketId: string) => void;
-  transferTicket: (ticketId: string, targetGroup: 'KB' | 'SK', targetCounterName: string) => void;
+  transferTicket: (ticketId: string, targetGroup: 'KB' | 'SK', targetCounterName: string) => Promise<void>;
   cancelTicket: (ticketId: string) => void;
   updateService: (service: ServiceItem) => void;
   updateCounter: (counter: Counter) => void;
@@ -212,31 +212,6 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }, 10000);
   };
 
-  const writeCallEvent = async (ticketCode: string, counterName: string, serviceTitle: string, ticketId?: string, serviceGroup?: ServiceGroup) => {
-    const timestamp = Date.now();
-    const eventRef = doc(collection(db, 'callEvents'));
-    const callData = {
-      id: eventRef.id,
-      dateStr,
-      ticketId: ticketId || null,
-      ticketCode,
-      counterName,
-      serviceTitle,
-      serviceGroup: serviceGroup || (ticketCode.startsWith('B-') ? 'SK' : 'KB'),
-      timestamp,
-      siteId: SITE_ID
-    };
-
-    localStorage.setItem('dppkb_live_call_event', JSON.stringify(callData));
-
-    await Promise.allSettled([
-      setDoc(eventRef, callData),
-      setDoc(doc(db, 'calls', 'latest'), callData, { merge: true })
-    ]);
-
-    return callData;
-  };
-
   useEffect(() => {
     if (!isOnline) return;
 
@@ -368,143 +343,39 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const issueTicket = async (service: ServiceItem, priorityClass: 'REGULAR' | 'PRIORITY' = 'REGULAR'): Promise<Ticket> => {
     if (!navigator.onLine) {
-      throw new Error('Perangkat sedang offline. Nomor antrean harus dibuat saat terhubung ke server agar tidak dobel lintas device.');
+      throw new Error('Perangkat sedang offline. Nomor antrean harus dibuat saat terhubung ke server agar tidak dobel.');
     }
 
-    const group = service.codeGroup;
-    const prefixCode = group === 'KB' ? 'A' : 'B';
-    const sequenceId = `${dateStr}_${SITE_ID}_${prefixCode}`;
-    const existingMaxSeq = tickets
-      .filter((ticket) => ticket.dateStr === dateStr && ticket.code.startsWith(`${prefixCode}-`))
-      .reduce((max, ticket) => Math.max(max, ticket.sequence || 0), 0);
-
-    const newTicket = await runTransaction(db, async (transaction) => {
-      const sequenceRef = doc(db, 'sequences', sequenceId);
-      const sequenceSnap = await transaction.get(sequenceRef);
-      const currentSeq = sequenceSnap.exists()
-        ? Number(sequenceSnap.data().current || 0)
-        : existingMaxSeq;
-      const nextSeq = currentSeq + 1;
-      const paddedNum = String(nextSeq).padStart(3, '0');
-      const ticketId = `${dateStr}-${prefixCode}-${paddedNum}`;
-      const ticketRef = doc(db, 'tickets', ticketId);
-      const timestamp = Date.now();
-
-      const ticket: Ticket = {
-        id: ticketId,
-        code: `${prefixCode}-${paddedNum}`,
-        sequence: nextSeq,
-        dateStr,
-        siteId: SITE_ID,
-        serviceGroup: group,
-        serviceId: service.id,
-        serviceTitle: service.title,
-        status: 'WAITING',
-        priorityClass,
-        source: 'KIOSK',
-        createdAt: timestamp,
-        callCount: 0,
-        version: 1,
-        idempotencyKey: `${dateStr}-${prefixCode}-${timestamp}-${Math.random().toString(36).slice(2, 8)}`
-      };
-
-      transaction.set(sequenceRef, {
-        current: nextSeq,
-        dateStr,
-        prefixCode,
-        siteId: SITE_ID,
-        updatedAt: timestamp
-      }, { merge: true });
-      transaction.set(ticketRef, ticket);
-
-      return ticket;
-    });
-
+    const newTicket = await queueRepository.issueTicketAtomic(service, priorityClass, tickets);
     upsertTicketLocal(newTicket);
     return newTicket;
   };
 
   const callNextTicket = async (counterId: string): Promise<Ticket | null> => {
     const counter = counters.find((c) => c.id === counterId);
-    if (!counter) return null;
-    if (!counter.active || counter.status !== 'OPEN') return null;
+    if (!counter || !counter.active || counter.status !== 'OPEN') return null;
 
-    const waitingSnapshot = await getDocs(query(
-      collection(db, 'tickets'),
-      where('dateStr', '==', dateStr)
-    ));
+    const result = await queueRepository.callNextTicketAtomic(counter, dateStr);
+    if (result) {
+      processedCallIdsRef.current.add(result.callEvent.id);
+      upsertTicketLocal(result.updatedTicket);
 
-    const candidates = waitingSnapshot.docs
-      .map((docSnap) => docSnap.data() as Ticket)
-      .filter((ticket) => ticket.status === 'WAITING')
-      .filter((ticket) => counter.handledGroup === 'ALL' || ticket.serviceGroup === counter.handledGroup)
-      .sort((a, b) => {
-        if (a.priorityClass === 'PRIORITY' && b.priorityClass !== 'PRIORITY') return -1;
-        if (a.priorityClass !== 'PRIORITY' && b.priorityClass === 'PRIORITY') return 1;
-        return a.createdAt - b.createdAt;
-      });
+      const updatedCounters = counters.map((item) => item.id === counterId
+        ? { ...item, currentTicketCode: result.updatedTicket.code, currentTicketId: result.updatedTicket.id }
+        : item
+      );
+      setCounters(updatedCounters);
+      persistConfig('counters', updatedCounters);
 
-    for (const candidate of candidates) {
-      const callEventRef = doc(collection(db, 'callEvents'));
-      const result = await runTransaction(db, async (transaction) => {
-        const ticketRef = doc(db, 'tickets', candidate.id);
-        const ticketSnap = await transaction.get(ticketRef);
-        if (!ticketSnap.exists()) return null;
+      triggerCallAnnouncement(
+        result.updatedTicket.code,
+        counter.name,
+        result.updatedTicket.serviceTitle,
+        result.callEvent.id,
+        result.updatedTicket.serviceGroup
+      );
 
-        const latest = ticketSnap.data() as Ticket;
-        if (latest.status !== 'WAITING') return null;
-        if (counter.handledGroup !== 'ALL' && latest.serviceGroup !== counter.handledGroup) return null;
-
-        const timestamp = Date.now();
-        const updatedTicket: Ticket = {
-          ...latest,
-          status: 'CALLED',
-          calledAt: timestamp,
-          counterId: counter.id,
-          counterName: counter.name,
-          callCount: latest.callCount + 1,
-          version: latest.version + 1
-        };
-        const callEvent = {
-          id: callEventRef.id,
-          dateStr,
-          ticketId: updatedTicket.id,
-          ticketCode: updatedTicket.code,
-          counterName: counter.name,
-          serviceTitle: updatedTicket.serviceTitle,
-          serviceGroup: updatedTicket.serviceGroup,
-          timestamp,
-          siteId: SITE_ID
-        };
-
-        transaction.set(ticketRef, updatedTicket, { merge: true });
-        transaction.set(callEventRef, callEvent);
-        transaction.set(doc(db, 'calls', 'latest'), callEvent, { merge: true });
-
-        return { updatedTicket, callEvent };
-      });
-
-      if (result) {
-        processedCallIdsRef.current.add(result.callEvent.id);
-        upsertTicketLocal(result.updatedTicket);
-
-        const updatedCounters = counters.map((item) => item.id === counterId
-          ? { ...item, currentTicketCode: result.updatedTicket.code, currentTicketId: result.updatedTicket.id }
-          : item
-        );
-        setCounters(updatedCounters);
-        persistConfig('counters', updatedCounters);
-
-        triggerCallAnnouncement(
-          result.updatedTicket.code,
-          counter.name,
-          result.updatedTicket.serviceTitle,
-          result.callEvent.id,
-          result.updatedTicket.serviceGroup
-        );
-
-        return result.updatedTicket;
-      }
+      return result.updatedTicket;
     }
 
     return null;
@@ -512,21 +383,19 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const recallTicket = async (ticketId: string) => {
     const target = tickets.find((t) => t.id === ticketId);
-    if (!target || !target.counterName) return;
+    if (!target) return;
 
-    const updated: Ticket = {
-      ...target,
-      status: 'CALLED',
-      calledAt: Date.now(),
-      callCount: target.callCount + 1,
-      version: target.version + 1
-    };
-    upsertTicketLocal(updated);
-    syncTicketToCloudAsync(updated);
+    const { updatedTicket, callEvent } = await queueRepository.recallTicketAtomic(target);
+    upsertTicketLocal(updatedTicket);
+    processedCallIdsRef.current.add(callEvent.id);
 
-    const callData = await writeCallEvent(target.code, target.counterName, target.serviceTitle, target.id, target.serviceGroup);
-    processedCallIdsRef.current.add(callData.id);
-    triggerCallAnnouncement(target.code, target.counterName, target.serviceTitle, callData.id, target.serviceGroup);
+    triggerCallAnnouncement(
+      updatedTicket.code,
+      updatedTicket.counterName || 'Loket 1',
+      updatedTicket.serviceTitle,
+      callEvent.id,
+      updatedTicket.serviceGroup
+    );
   };
 
   const updateTicketStatus = (ticketId: string, patch: Partial<Ticket>) => {
@@ -569,13 +438,12 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     clearCounterCurrentTicket(ticketId);
   };
 
-  const transferTicket = (ticketId: string, targetGroup: 'KB' | 'SK', targetCounterName: string) => {
-    updateTicketStatus(ticketId, {
-      status: 'WAITING',
-      serviceGroup: targetGroup,
-      counterName: targetCounterName,
-      notes: `Ditransfer ke ${targetGroup} (${targetCounterName})`
-    });
+  const transferTicket = async (ticketId: string, targetGroup: 'KB' | 'SK', targetCounterName: string) => {
+    const target = tickets.find((t) => t.id === ticketId);
+    if (!target) return;
+
+    const updated = await queueRepository.transferTicketAtomic(target, targetGroup, targetCounterName, `Ditransfer ke ${targetGroup}`);
+    upsertTicketLocal(updated);
     clearCounterCurrentTicket(ticketId);
   };
 
@@ -659,4 +527,3 @@ export const useQueue = () => {
   if (!context) throw new Error('useQueue harus digunakan di dalam QueueProvider');
   return context;
 };
-

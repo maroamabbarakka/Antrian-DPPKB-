@@ -1,0 +1,17 @@
+{
+  "package": "Antrian DPPKB Majene Technical Improvement Pack",
+  "scope_exclusion": [
+    "Authentication",
+    "RBAC"
+  ],
+  "documents": [
+    "00_README.md",
+    "01_AUDIO_ENGINE_AND_CALL_PLAYBACK.md",
+    "02_RESPONSIVE_TV_DISPLAY.md",
+    "03_QUEUE_AND_FIRESTORE_RELIABILITY.md",
+    "04_OFFLINE_PWA_AND_MEDIA_RESILIENCE.md",
+    "05_CODE_ARCHITECTURE_AND_DIAGNOSTICS.md",
+    "06_TESTING_ACCEPTANCE_AND_ROLLOUT.md",
+    "07_DEVICE_COMPATIBILITY_TEMPLATE.md"
+  ]
+}

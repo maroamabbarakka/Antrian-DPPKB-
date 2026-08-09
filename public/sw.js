@@ -1,12 +1,19 @@
-const CACHE_NAME = 'antri-dppkb-v3';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'antri-dppkb-v4';
+
+const CORE_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
   '/Logo_DPPKB.png',
-  '/manifest.json'
+  '/audio/audio-ready.mp3',
+  '/audio/audio-ready.wav'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(CORE_ASSETS);
+    })
   );
   self.skipWaiting();
 });
@@ -14,7 +21,12 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => Promise.all(
-      cacheNames.map((cache) => cache !== CACHE_NAME ? caches.delete(cache) : undefined)
+      cacheNames.map((cache) => {
+        if (cache !== CACHE_NAME) {
+          return caches.delete(cache);
+        }
+        return undefined;
+      })
     ))
   );
   self.clients.claim();
@@ -31,6 +43,7 @@ self.addEventListener('fetch', (event) => {
 
   if (request.method !== 'GET') return;
 
+  // Navigation requests (HTML Pages)
   if (request.mode === 'navigate' || request.destination === 'document') {
     event.respondWith(
       fetch(request).catch(() => caches.match('/index.html'))
@@ -38,16 +51,27 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  const isAppAsset = request.destination === 'script' || request.destination === 'style' || request.url.includes('/assets/');
+  // App Assets (JS, CSS, Font, Audio)
+  const isAppAsset =
+    request.destination === 'script' ||
+    request.destination === 'style' ||
+    request.destination === 'audio' ||
+    request.url.includes('/assets/') ||
+    request.url.includes('/audio/');
 
   if (isAppAsset) {
     event.respondWith(
-      fetch(request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, networkResponse.clone()));
-        }
-        return networkResponse;
-      }).catch(() => caches.match(request))
+      caches.match(request).then((cachedResponse) => {
+        const networkFetch = fetch(request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return networkResponse;
+        }).catch(() => cachedResponse);
+
+        return cachedResponse || networkFetch;
+      })
     );
     return;
   }
@@ -56,7 +80,8 @@ self.addEventListener('fetch', (event) => {
     caches.match(request).then((cachedResponse) => {
       const networkFetch = fetch(request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, networkResponse.clone()));
+          const copy = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         }
         return networkResponse;
       }).catch(() => cachedResponse);
