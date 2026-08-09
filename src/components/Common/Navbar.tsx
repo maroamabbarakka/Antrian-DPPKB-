@@ -29,7 +29,13 @@ export const Navbar: React.FC = () => {
 
       } else {
         setAudioTestStatus('fail');
-        const voiceErr = result.steps.voice.error || result.steps.context.error || 'VOICE_NOT_PLAYED';
+        const voiceErr =
+          result.steps.voice.error ||
+          result.steps.decode.error ||
+          result.steps.assets.error ||
+          result.steps.context.error ||
+          result.steps.chime.error ||
+          'VOICE_NOT_PLAYED';
         setAudioTestDetail(`Suara gagal — ${voiceErr}`);
       }
     } catch (err: any) {

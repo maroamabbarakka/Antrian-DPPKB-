@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "validate:audio": "node scripts/validate-audio-assets.mjs",
-    "build": "npm run validate:audio && tsc && vite build",
+    "build": "npm run validate:audio && npx tsc && npx vite build",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -42,6 +42,26 @@ for (const relPath of REQUIRED_FILES) {
     continue;
   }
 
+  // Verifikasi Magic Header RIFF/WAVE (Genuine PCM WAV)
+  try {
+    const buf = Buffer.alloc(12);
+    const fd = fs.openSync(fullPath, 'r');
+    fs.readSync(fd, buf, 0, 12, 0);
+    fs.closeSync(fd);
+
+    const riff = buf.toString('ascii', 0, 4);
+    const wave = buf.toString('ascii', 8, 12);
+    if (riff !== 'RIFF' || wave !== 'WAVE') {
+      console.error(`❌ INVALID WAV HEADER (${riff}/${wave}): public/audio/queue/${relPath}`);
+      failCount++;
+      continue;
+    }
+  } catch (err) {
+    console.error(`❌ FILE READ ERROR: public/audio/queue/${relPath} — ${err.message}`);
+    failCount++;
+    continue;
+  }
+
   passCount++;
 }
 

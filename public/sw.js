@@ -1,7 +1,7 @@
-// sw.js — Service Worker Antrian DPPKB Majene (v6 — Voice Assets Cache & Offline Resilience)
-// Cache: app shell + SEMUA 30 voice assets WAV lokal (Dokumen 10 P1 #12)
+// sw.js — Service Worker Antrian DPPKB Majene (v7 — Genuine PCM WAV Voice Assets Cache & Offline Resilience)
+// Cache: app shell + SEMUA 30 voice assets WAV lokal (Dokumen 11 Patch #5 & #6)
 
-const CACHE_NAME = 'antri-dppkb-audio-v6';
+const CACHE_NAME = 'antri-dppkb-audio-v7';
 
 const CORE_ASSETS = [
   '/',
@@ -107,12 +107,14 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Voice assets WAV — cache first (offline-first audio)
+  // Dokumen 11 Patch #6: Jangan pernah simpan respon HTML jika request audio gagal/fallback
   if (request.url.includes('/audio/queue/')) {
     event.respondWith(
       caches.match(request).then((cached) => {
         if (cached) return cached;
         return fetch(request).then((response) => {
-          if (response.ok) {
+          const type = response.headers.get('content-type') || '';
+          if (response.ok && !type.includes('text/html')) {
             caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
           }
           return response;

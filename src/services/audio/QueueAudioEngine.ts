@@ -8,7 +8,7 @@ import {
   getRequiredAssetKeys,
   VoiceSequenceInput
 } from './buildQueueVoiceSequence';
-import { ESSENTIAL_ASSET_KEYS } from './queueAudioManifest';
+import { ESSENTIAL_ASSET_KEYS, AUDIO_MANIFEST, AudioAssetKey } from './queueAudioManifest';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -59,6 +59,7 @@ type EngineStateListener = (state: AudioEngineState, job?: AudioCallJob | null) 
 class QueueAudioEngine {
   private audioCtx: AudioContext | null = null;
   private state: AudioEngineState = 'LOCKED';
+  private lastError: string | null = null;
 
   private jobQueue: AudioCallJob[] = [];
   private currentJob: AudioCallJob | null = null;
@@ -83,19 +84,27 @@ class QueueAudioEngine {
     }
   }
 
-  // ─── Preload Audio Assets (Prefetch P1 Dokumen 10 #11) ────────────────────
+  // ─── Preload Audio Assets (Prefetch P1 Dokumen 10 #11 & Dokumen 11 Patch #1) ──
 
-  /** Preload raw ArrayBuffers saat app startup sebelum user gesture */
+  /** Preload raw ArrayBuffers saat app startup sebelum user gesture — Menggunakan AUDIO_MANIFEST */
   async prefetchAudioAssets(): Promise<void> {
     try {
       const keys = ESSENTIAL_ASSET_KEYS as string[];
-      await Promise.allSettled(
+      const results = await Promise.allSettled(
         keys.map(key => {
-          const url = `/audio/queue/${key.replace('.', '/s/')}.wav`;
+          const url = AUDIO_MANIFEST[key as Exclude<AudioAssetKey, 'pause.short'>];
+          if (!url) return Promise.resolve();
           return audioBufferStore.prefetch(key, url);
         })
       );
-    } catch {}
+
+      const failures = results.filter(r => r.status === 'rejected');
+      if (failures.length > 0) {
+        console.error('[AUDIO-PREFETCH] Gagal prefetch beberapa aset:', failures);
+      }
+    } catch (err: any) {
+      console.error('[AUDIO-PREFETCH] Exception saat prefetchAudioAssets:', err);
+    }
   }
 
   // ─── State Management ─────────────────────────────────────────────────────
@@ -180,7 +189,12 @@ class QueueAudioEngine {
       return true;
     } catch (err: any) {
       const errMsg = err?.message || 'UNKNOWN';
+      this.lastError = errMsg;
       console.error('[AUDIO-ENGINE]', { event: 'UNLOCK_FAILED', error: errMsg, timestamp: Date.now() });
+
+      // Dokumen 11 Patch #4: Bersihkan buffer store saat unlock gagal agar tidak ada poisoned buffer yang bertahan
+      audioBufferStore.clear();
+
       if (errMsg.includes('AUDIO_CONTEXT') || errMsg.includes('NotAllowedError')) {
         this.updateState('BLOCKED');
       } else {
@@ -471,6 +485,7 @@ class QueueAudioEngine {
 
   // ─── Diagnostics ──────────────────────────────────────────────────────────
 
+  getLastError(): string | null  { return this.lastError; }
   getPlayedCallCount(): number   { return this.playedCallIds.size; }
   getFailedCallCount(): number   { return this.failedCallIds.size; }
   getQueueLength(): number       { return this.jobQueue.length; }

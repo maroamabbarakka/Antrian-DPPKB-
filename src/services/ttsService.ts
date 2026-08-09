@@ -6,12 +6,13 @@ import { queueAudioEngine, AudioTestResult } from './audio/QueueAudioEngine';
 import { ServiceGroup } from '../types/queue';
 
 /** Hasil unlock gagal sebagai AudioTestResult */
-function audioUnlockFailedResult(): AudioTestResult {
+function audioUnlockFailedResult(detailError?: string): AudioTestResult {
+  const err = detailError ? `AUDIO_UNLOCK_FAILED:${detailError}` : 'AUDIO_UNLOCK_FAILED';
   return {
     success: false,
     durationMs: 0,
     steps: {
-      context: { success: false, error: 'AUDIO_UNLOCK_FAILED' },
+      context: { success: false, error: err },
       assets:  { success: false },
       decode:  { success: false },
       chime:   { success: false },
@@ -69,7 +70,7 @@ class TTSService {
   async testAudio(): Promise<AudioTestResult> {
     const unlocked = await queueAudioEngine.unlockFromUserGesture();
     if (!unlocked) {
-      return audioUnlockFailedResult();
+      return audioUnlockFailedResult(queueAudioEngine.getLastError() || undefined);
     }
     return queueAudioEngine.testCallFull();
   }

@@ -30,6 +30,21 @@ class AudioBufferStore {
   /** Penyimpanan AudioBuffer yang sudah di-decode (siap diputar) */
   private decodedBuffers = new Map<string, AudioBuffer>();
 
+  /** Validasi respon HTTP dan header magic byte RIFF/WAVE */
+  private validateWavBuffer(key: string, response: Response, bytes: ArrayBuffer): void {
+    const contentType = response.headers.get('content-type')?.toLowerCase() || '';
+    if (contentType.includes('text/html')) {
+      throw new Error(`AUDIO_RECEIVED_HTML:${key}`);
+    }
+
+    const header = new Uint8Array(bytes, 0, Math.min(12, bytes.byteLength));
+    const text = String.fromCharCode(...header);
+    const isWav = text.slice(0, 4) === 'RIFF' && text.slice(8, 12) === 'WAVE';
+    if (!isWav) {
+      throw new Error(`INVALID_WAV_HEADER:${key}`);
+    }
+  }
+
   // ─── Preload (boleh sebelum AudioContext aktif) ────────────────────────
 
   /**
@@ -50,6 +65,7 @@ class AudioBufferStore {
     }
 
     const bytes = await response.arrayBuffer();
+    this.validateWavBuffer(key, response, bytes);
     this.rawBuffers.set(key, bytes);
   }
 
@@ -80,14 +96,21 @@ class AudioBufferStore {
         throw new Error(`AUDIO_HTTP_${response.status}:${key}`);
       }
       rawBuffer = await response.arrayBuffer();
+      this.validateWavBuffer(key, response, rawBuffer);
     }
 
     // decodeAudioData membutuhkan salinan baru (slice(0)) agar thread-safe
-    const decoded = await withTimeout(
-      ctx.decodeAudioData(rawBuffer.slice(0)),
-      5000,
-      `DECODE_TIMEOUT:${key}`
-    );
+    let decoded: AudioBuffer;
+    try {
+      decoded = await withTimeout(
+        ctx.decodeAudioData(rawBuffer.slice(0)),
+        5000,
+        `DECODE_TIMEOUT:${key}`
+      );
+    } catch (err: any) {
+      this.rawBuffers.delete(key);
+      throw err;
+    }
 
     this.decodedBuffers.set(key, decoded);
     this.rawBuffers.delete(key); // Bebaskan memori raw setelah decode
