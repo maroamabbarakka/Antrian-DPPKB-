@@ -5,6 +5,7 @@ import { KioskView } from './components/Kiosk/KioskView';
 import { OperatorView } from './components/Operator/OperatorView';
 import { TVDisplayView } from './components/TVDisplay/TVDisplayView';
 import { AdminView } from './components/Admin/AdminView';
+import { DebugOverlay } from './components/Common/DebugOverlay';
 import './styles/index.css';
 
 const MainContainer: React.FC = () => {
@@ -27,6 +28,7 @@ const MainContainer: React.FC = () => {
       <div style={{ background: '#070d19', minHeight: '100vh' }}>
         {!isDirectTV && <Navbar />}
         <TVDisplayView />
+        <DebugOverlay />
       </div>
     );
   }
@@ -39,6 +41,8 @@ const MainContainer: React.FC = () => {
         {activeTab === 'operator' && <OperatorView />}
         {activeTab === 'admin' && <AdminView />}
       </main>
+
+      <DebugOverlay />
 
       <footer style={{
         background: '#0f172a',
@@ -63,4 +67,3 @@ export const App: React.FC = () => {
 };
 
 export default App;
-
