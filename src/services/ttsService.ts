@@ -1,13 +1,17 @@
-// Layanan adapter audio antrean kompatibilitas tinggi.
+// ttsService.ts — Adapter Audio Antrean (High Compatibility)
 // Mengarahkan ke QueueAudioEngine terpusat untuk keandalan audio di Smart TV & iOS.
 
-import { queueAudioEngine } from './audio/QueueAudioEngine';
+import { queueAudioEngine, AudioTestResult } from './audio/QueueAudioEngine';
 import { buildAnnouncementText, formatCodeSpoken, getServiceSpeechLabel } from './audio/queueAudioText';
 import { ServiceGroup } from '../types/queue';
 
 class TTSService {
-  public unlockAudio(): void {
-    queueAudioEngine.unlockFromUserGesture();
+  /**
+   * Buka kunci audio dari User Gesture — async, menunggu konfirmasi
+   * persistent player benar-benar berhasil memutar.
+   */
+  public async unlockAudio(): Promise<boolean> {
+    return queueAudioEngine.unlockFromUserGesture();
   }
 
   public async playChime(): Promise<void> {
@@ -52,12 +56,18 @@ class TTSService {
   }
 
   public playTicketIssueChime(_code: string, _serviceTitle?: string): void {
-    // Hening di kios
+    // Hening di kios — tidak ada suara saat pengambilan tiket
   }
 
-  public testAudio(): void {
-    this.unlockAudio();
-    this.announceCall('A-001', 'Loket 1', 'Pelayanan Keluarga Berencana', 'KB');
+  /**
+   * Tes audio terstruktur — mengembalikan AudioTestResult lengkap.
+   * Tombol "Tes Audio" di Navbar memanggil ini dan menampilkan hasilnya.
+   * CHIME saja tanpa VOICE adalah GAGAL.
+   */
+  public async testAudio(): Promise<AudioTestResult> {
+    // Pastikan audio terbuka dulu dari user gesture
+    await queueAudioEngine.unlockFromUserGesture();
+    return queueAudioEngine.testCallFull();
   }
 }
 

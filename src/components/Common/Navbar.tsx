@@ -1,15 +1,55 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQueue } from '../../context/QueueContext';
-import { Layout, Monitor, Tv, Settings, Wifi, WifiOff, Volume2, ExternalLink } from 'lucide-react';
+import { Layout, Monitor, Tv, Settings, Wifi, WifiOff, Volume2, ExternalLink, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { ttsService } from '../../services/ttsService';
+
+type AudioTestStatus = 'idle' | 'testing' | 'pass' | 'fail';
 
 export const Navbar: React.FC = () => {
   const { activeTab, setActiveTab, isOnline } = useQueue();
+  const [audioTestStatus, setAudioTestStatus] = useState<AudioTestStatus>('idle');
+  const [audioTestDetail, setAudioTestDetail] = useState<string>('');
 
   const handleOpenTVTab = () => {
     setActiveTab('tv');
     window.open('/?view=tv', '_blank');
   };
+
+  const handleTestAudio = async () => {
+    if (audioTestStatus === 'testing') return;
+    setAudioTestStatus('testing');
+    setAudioTestDetail('Menguji...');
+
+    try {
+      const result = await ttsService.testAudio();
+      if (result.success) {
+        setAudioTestStatus('pass');
+        setAudioTestDetail(`Suara OK — ${result.voice.source || 'TTS'}`);
+      } else {
+        setAudioTestStatus('fail');
+        const voiceErr = result.voice.error || 'VOICE_NOT_PLAYED';
+        setAudioTestDetail(`Suara gagal — ${voiceErr}`);
+      }
+    } catch (err: any) {
+      setAudioTestStatus('fail');
+      setAudioTestDetail(err?.message || 'ERROR');
+    }
+
+    // Reset ke idle setelah 5 detik
+    setTimeout(() => {
+      setAudioTestStatus('idle');
+      setAudioTestDetail('');
+    }, 5000);
+  };
+
+  const audioTestColors = {
+    idle:    { bg: 'rgba(2, 132, 199, 0.2)',  border: 'rgba(56, 189, 248, 0.4)',  text: '#38bdf8' },
+    testing: { bg: 'rgba(245, 158, 11, 0.2)', border: 'rgba(245, 158, 11, 0.5)',  text: '#fbbf24' },
+    pass:    { bg: 'rgba(34, 197, 94, 0.2)',   border: 'rgba(74, 222, 128, 0.5)',  text: '#4ade80' },
+    fail:    { bg: 'rgba(239, 68, 68, 0.2)',   border: 'rgba(248, 113, 113, 0.5)', text: '#f87171' }
+  };
+
+  const colors = audioTestColors[audioTestStatus];
 
   return (
     <header 
@@ -77,7 +117,7 @@ export const Navbar: React.FC = () => {
         className="app-navbar-menu"
         style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}
       >
-        {/* Kelompok Navigasi Utama (Kios, Operator, Admin) */}
+        {/* Kelompok Navigasi Utama */}
         <nav style={{ 
           display: 'flex', 
           gap: '6px', 
@@ -112,7 +152,7 @@ export const Navbar: React.FC = () => {
           </button>
         </nav>
 
-        {/* TOMBOL MENUNJOL TERPISAH: LAYAR TV 16:9 */}
+        {/* Tombol LAYAR TV 16:9 */}
         <button
           onClick={handleOpenTVTab}
           style={{
@@ -150,26 +190,55 @@ export const Navbar: React.FC = () => {
 
         {/* Controls & Network Indicator */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-          <button 
-            onClick={() => ttsService.testAudio()}
-            title="Tes Suara Chime & Pemanggilan TTS"
-            style={{
-              background: 'rgba(2, 132, 199, 0.2)',
-              border: '1px solid rgba(56, 189, 248, 0.4)',
-              color: '#38bdf8',
-              borderRadius: '10px',
-              padding: '6px 12px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700
-            }}
-          >
-            <Volume2 size={14} /> Tes Audio
-          </button>
+          {/* Tombol Tes Audio dengan feedback visual */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+            <button
+              id="btn-tes-audio"
+              onClick={handleTestAudio}
+              disabled={audioTestStatus === 'testing'}
+              title="Tes Suara Chime & Pemanggilan TTS (Nomor A-001, Loket 1, Pelayanan KB)"
+              style={{
+                background: colors.bg,
+                border: `1px solid ${colors.border}`,
+                color: colors.text,
+                borderRadius: '10px',
+                padding: '6px 12px',
+                cursor: audioTestStatus === 'testing' ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                transition: 'all 0.2s ease',
+                opacity: audioTestStatus === 'testing' ? 0.8 : 1,
+                minWidth: '100px'
+              }}
+            >
+              {audioTestStatus === 'testing' && <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />}
+              {audioTestStatus === 'pass'    && <CheckCircle2 size={13} />}
+              {audioTestStatus === 'fail'    && <XCircle size={13} />}
+              {audioTestStatus === 'idle'    && <Volume2 size={14} />}
+              {audioTestStatus === 'idle'    ? 'Tes Audio' :
+               audioTestStatus === 'testing' ? 'Menguji...' :
+               audioTestStatus === 'pass'    ? 'Audio OK' :
+                                               'Audio Gagal'}
+            </button>
+            {audioTestDetail && audioTestStatus !== 'idle' && audioTestStatus !== 'testing' && (
+              <span style={{
+                fontSize: '0.64rem',
+                color: colors.text,
+                maxWidth: '120px',
+                textAlign: 'center',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}>
+                {audioTestDetail}
+              </span>
+            )}
+          </div>
 
+          {/* Indikator jaringan */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
