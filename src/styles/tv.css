@@ -1,0 +1,1379 @@
+/* TV Display Layout Presisi, SUPER RESPONSIF 100% BEBAS BERTUMPUK / OVERLAP UNTUL SEMUA JENIS DEVICE & UKURAN LAYAR */
+
+:root {
+  --tv-bg-dark: #040c1e;
+  --tv-border-color: rgba(2, 132, 199, 0.4);
+  --tv-accent-blue: #38bdf8;
+  --tv-accent-gold: #f59e0b;
+  --tv-accent-green: #4ade80;
+}
+
+html:has(.tv-screen),
+body:has(.tv-screen),
+#root:has(.tv-screen) {
+  background: var(--tv-bg-dark) !important;
+}
+
+/* Container Layar Utama TV */
+.tv-screen {
+  width: 100vw;
+  min-width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: 100vw;
+  max-height: 100vh;
+  overflow: hidden;
+  background: var(--tv-bg-dark);
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.5vh;
+  padding: 0.5vh 0.5vw;
+  user-select: none;
+  font-family: var(--font-family);
+  box-sizing: border-box;
+}
+
+/* Header Section */
+.tv-header {
+  height: 10vh;
+  max-height: 84px;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(90deg, #091733 0%, #0d2146 100%);
+  border: 1.5px solid var(--tv-border-color);
+  border-radius: 12px;
+  padding: 0 0.9rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+  box-sizing: border-box;
+  flex-shrink: 0;
+  gap: 0.6rem;
+}
+
+.tv-logo-area {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  height: 100%;
+  min-width: 0;
+  flex: 1;
+}
+
+.tv-logo-box {
+  height: 82%;
+  max-height: 58px;
+  background: #ffffff;
+  padding: 3px 10px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.tv-logo-img {
+  height: 100%;
+  max-height: 44px;
+  width: auto;
+  object-fit: contain;
+}
+
+.tv-header-title-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex: 1;
+}
+
+.tv-header-tag {
+  font-size: clamp(0.58rem, 0.65vw, 0.78rem);
+  font-weight: 800;
+  color: var(--tv-accent-blue);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  line-height: 1.1;
+  margin-bottom: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tv-header-title {
+  font-size: clamp(0.7rem, 0.9vw, 1.12rem);
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  color: #ffffff;
+  line-height: 1.18;
+  margin: 0;
+  overflow: hidden;
+}
+
+.tv-audio-unlock-btn {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 5px 12px;
+  font-size: clamp(0.62rem, 0.7vw, 0.8rem);
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.tv-fullscreen-btn {
+  background: rgba(2, 132, 199, 0.25);
+  border: 1.5px solid rgba(56, 189, 248, 0.5);
+  color: var(--tv-accent-blue);
+  border-radius: 9999px;
+  padding: 5px 12px;
+  font-size: clamp(0.62rem, 0.7vw, 0.8rem);
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.tv-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1.5px solid rgba(34, 197, 94, 0.5);
+  color: var(--tv-accent-green);
+  font-size: clamp(0.62rem, 0.7vw, 0.8rem);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.tv-header-clock {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 1.5px solid rgba(255, 255, 255, 0.18);
+  flex-shrink: 0;
+}
+
+.tv-time {
+  font-family: var(--font-mono);
+  font-size: clamp(1.15rem, 1.55vw, 1.95rem);
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.tv-time-unit {
+  font-size: clamp(0.68rem, 0.78vw, 0.92rem);
+  color: var(--tv-accent-blue);
+  margin-left: 2px;
+}
+
+.tv-date {
+  font-size: clamp(0.6rem, 0.68vw, 0.8rem);
+  color: #cbd5e1;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Main Grid Body Layout (Kiri 65% + Kanan 35%) */
+  .tv-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 65% 35%;
+  gap: 0.5vw;
+  min-height: 0;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* PANEL KIRI */
+.tv-main-left-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5vh;
+  min-height: 0;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* Baris Atas Kiri: Video (62%) & SKM QR (38%) */
+.tv-top-row-video-qr {
+  display: grid;
+  grid-template-columns: 62% 38%;
+  gap: 0.5vw;
+  flex: 1.1;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+/* PEMUTAR VIDEO CONTAINER FIT TO FRAME 100% BEBAS TERPOTONG */
+.tv-video-container {
+  height: 100%;
+  width: 100%;
+  background: #000000;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  border: 2px solid rgba(2, 132, 199, 0.45);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  isolation: isolate;
+}
+
+.tv-youtube-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000000;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.tv-youtube-iframe {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  border: none !important;
+  outline: none !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  touch-action: none !important;
+}
+
+.tv-youtube-click-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: transparent;
+  cursor: default;
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tv-youtube-wrapper:focus,
+.tv-youtube-iframe:focus,
+.tv-youtube-click-mask:focus {
+  outline: none !important;
+}
+
+.tv-video-player {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  background: #000000;
+  border: none !important;
+  outline: none !important;
+  display: block;
+}
+
+.tv-video-bottom-bar {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  right: 5px;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.tv-video-overlay-tag {
+  pointer-events: auto;
+  background: rgba(7, 21, 44, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 2px 7px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tv-video-play-btn {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #ffffff;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tv-video-tag-title {
+  font-size: clamp(0.58rem, 0.66vw, 0.78rem);
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.tv-video-tag-sub {
+  font-size: clamp(0.5rem, 0.56vw, 0.66rem);
+  color: #cbd5e1;
+}
+
+.tv-icon-only-btn {
+  pointer-events: auto;
+  background: rgba(7, 21, 44, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Kartu QR Code SKM 2026 */
+.tv-skm-card {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(145deg, #07152c 0%, #0c2044 100%);
+  border: 2px solid rgba(2, 132, 199, 0.5);
+  border-radius: 12px;
+  padding: 0.4rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  box-sizing: border-box;
+}
+
+.tv-skm-title-text {
+  font-size: clamp(0.7rem, 0.85vw, 1.05rem);
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.12;
+}
+
+.tv-skm-year {
+  display: block;
+  color: var(--tv-accent-gold);
+  font-size: clamp(0.92rem, 1.1vw, 1.35rem);
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.tv-skm-scan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: clamp(0.65rem, 0.74vw, 0.82rem);
+  font-weight: 900;
+}
+
+.tv-skm-qr-box {
+  background: #ffffff;
+  padding: 4px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 76%;
+  margin: 1px auto;
+}
+
+.tv-skm-qr-img {
+  width: 100%;
+  height: auto;
+  max-height: 15vh;
+  object-fit: contain;
+  display: block;
+}
+
+.tv-skm-link-box {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(2, 132, 199, 0.18);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: var(--tv-accent-blue);
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: clamp(0.52rem, 0.58vw, 0.68rem);
+  font-weight: 700;
+  width: 98%;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.tv-skm-link-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Baris Bawah Kiri: Status Cards Pelayanan KB & Sekretariat */
+.tv-bottom-cards-row {
+  flex: 0.9;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5vw;
+  box-sizing: border-box;
+}
+
+.tv-service-status-card {
+  background: linear-gradient(135deg, #091733 0%, #0c2046 100%);
+  border: 1.5px solid var(--tv-border-color);
+  border-radius: 12px;
+  padding: 0.5rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.tv-card-header-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 0.25rem;
+}
+
+.tv-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tv-icon-box-kb {
+  background: rgba(5, 150, 105, 0.2);
+  border: 1px solid rgba(5, 150, 105, 0.4);
+  color: #34d399;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tv-icon-box-sk {
+  background: rgba(2, 132, 199, 0.2);
+  border: 1px solid rgba(2, 132, 199, 0.4);
+  color: var(--tv-accent-blue);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tv-card-large-title {
+  font-size: clamp(0.72rem, 0.85vw, 1.05rem);
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.2px;
+  line-height: 1.1;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.tv-card-sub-code {
+  font-size: clamp(0.55rem, 0.6vw, 0.72rem);
+  color: #94a3b8;
+  font-weight: 600;
+  display: block;
+}
+
+.tv-badge-buka {
+  background: #15803d;
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.tv-card-body-rich-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0.2rem 0;
+  flex: 1;
+  justify-content: center;
+}
+
+.tv-rich-stat-box-kb, .tv-rich-stat-box-sk, .tv-rich-stat-box-est {
+  border-radius: 7px;
+  padding: 0.25rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.tv-rich-stat-box-kb {
+  background: rgba(5, 150, 105, 0.15);
+  border: 1px solid rgba(5, 150, 105, 0.35);
+}
+
+.tv-rich-stat-box-sk {
+  background: rgba(2, 132, 199, 0.15);
+  border: 1px solid rgba(2, 132, 199, 0.35);
+}
+
+.tv-rich-stat-box-est {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tv-rich-stat-label {
+  font-size: clamp(0.58rem, 0.65vw, 0.75rem);
+  font-weight: 800;
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  text-transform: uppercase;
+}
+
+.tv-rich-stat-value-kb {
+  font-family: var(--font-mono);
+  font-size: clamp(1.1rem, 1.5vw, 2.0rem);
+  font-weight: 900;
+  color: #34d399;
+  line-height: 1;
+}
+
+.tv-rich-stat-value-sk {
+  font-family: var(--font-mono);
+  font-size: clamp(1.1rem, 1.5vw, 2.0rem);
+  font-weight: 900;
+  color: var(--tv-accent-blue);
+  line-height: 1;
+}
+
+.tv-rich-stat-unit {
+  font-size: clamp(0.62rem, 0.7vw, 0.82rem);
+  color: #cbd5e1;
+  font-weight: 700;
+}
+
+.tv-rich-stat-value-est {
+  font-size: clamp(0.7rem, 0.82vw, 1.02rem);
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.12;
+}
+
+.tv-card-footer-info {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+  padding: 2px 5px;
+  font-size: clamp(0.55rem, 0.6vw, 0.7rem);
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+
+.tv-main-left-section {
+  display: grid;
+  grid-template-rows: minmax(0, 56%) minmax(0, 44%);
+}
+
+.tv-top-row-video-qr,
+.tv-bottom-cards-row {
+  flex: initial;
+  height: 100%;
+  min-height: 0;
+}
+
+.tv-video-container,
+.tv-skm-card,
+.tv-service-status-card {
+  min-height: 0;
+}
+/* PANEL KANAN (Sedang Dipanggil + Antrean Berikutnya) */
+.tv-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5vh;
+  min-height: 0;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.tv-current-call-card {
+  background: linear-gradient(145deg, #07152c 0%, #0d234a 100%);
+  border: 2px solid #0284c7;
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
+  text-align: center;
+  box-shadow: 0 0 24px rgba(2, 132, 199, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex: 1.2;
+  min-height: 0;
+}
+
+.tv-call-large-label {
+  font-size: clamp(0.75rem, 0.9vw, 1.1rem);
+  font-weight: 900;
+  color: var(--tv-accent-blue);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.tv-call-number {
+  font-family: var(--font-mono);
+  font-size: clamp(2.8rem, 4.6vw, 5.8rem);
+  font-weight: 800;
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: 0 4px 25px rgba(0, 0, 0, 0.85);
+  margin: 0.1rem 0;
+  letter-spacing: -2px;
+}
+
+.tv-call-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0.2rem 0;
+}
+
+.tv-call-counter-single {
+  font-size: clamp(0.95rem, 1.3vw, 1.95rem);
+  font-weight: 900;
+  color: var(--tv-accent-gold);
+  line-height: 1.18;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  text-align: center;
+  max-width: 100%;
+  padding: 0 2px;
+}
+
+.tv-call-service {
+  font-size: clamp(0.68rem, 0.78vw, 0.92rem);
+  color: #e2e8f0;
+  font-weight: 600;
+  margin-top: 0.1rem;
+}
+
+.tv-call-chime-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 0.35rem;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  font-size: clamp(0.58rem, 0.65vw, 0.78rem);
+  font-weight: 700;
+}
+
+/* Upcoming Queue List */
+.tv-upcoming-card {
+  flex: 0.8;
+  min-height: 0;
+  background: linear-gradient(135deg, #07152c 0%, #091a38 100%);
+  border: 1.5px solid rgba(2, 132, 199, 0.35);
+  border-radius: 12px;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.tv-upcoming-title {
+  font-size: clamp(0.68rem, 0.76vw, 0.9rem);
+  font-weight: 800;
+  color: var(--tv-accent-blue);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 0.2rem;
+  margin-bottom: 0.3rem;
+  letter-spacing: 0.5px;
+}
+
+.tv-upcoming-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  overflow-y: auto;
+}
+
+.tv-upcoming-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+}
+
+.tv-item-left {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tv-circle-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #059669;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.68rem;
+  flex-shrink: 0;
+}
+
+.tv-item-code {
+  font-family: var(--font-mono);
+  font-size: clamp(0.9rem, 1.08vw, 1.35rem);
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.tv-item-counter {
+  font-size: clamp(0.64rem, 0.7vw, 0.85rem);
+  font-weight: 700;
+  color: var(--tv-accent-blue);
+}
+
+/* Footer Banner Bar */
+.tv-footer-bar {
+  height: 4.8vh;
+  max-height: 48px;
+  min-height: 38px;
+  background: linear-gradient(90deg, #091733 0%, #0d2146 100%);
+  border: 1.5px solid var(--tv-border-color);
+  border-radius: 9px;
+  padding: 0 0.85rem;
+  display: grid;
+  grid-template-columns: minmax(0, 70%) minmax(0, 29%);
+  gap: 0.65vw;
+  align-items: center;
+  font-size: clamp(0.78rem, 0.92vw, 1.05rem);
+  font-weight: 800;
+  color: #ffffff;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+  box-sizing: border-box;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.tv-footer-left-marquee {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  height: 100%;
+  min-width: 0;
+  position: relative;
+}
+
+.tv-marquee-badge-box {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #091733;
+  z-index: 10;
+  padding-right: 8px;
+  flex-shrink: 0;
+  height: 100%;
+}
+
+.tv-info-icon-badge {
+  background: #f59e0b;
+  color: #0f172a;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+}
+
+.tv-marquee-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  min-width: 0;
+}
+
+.tv-marquee-track {
+  display: flex;
+  gap: 2.2rem;
+  animation: marqueeAnimation 42s linear infinite;
+  white-space: nowrap;
+  min-width: max-content;
+}
+
+.tv-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #f8fafc;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.tv-marquee-star {
+  color: var(--tv-accent-gold);
+  font-size: 0.92em;
+  line-height: 1;
+}
+
+@keyframes marqueeAnimation {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.tv-footer-right {
+  color: var(--tv-accent-blue);
+  font-weight: 800;
+  padding-left: 0.65rem;
+  border-left: 1.5px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  font-size: clamp(0.7rem, 0.82vw, 0.95rem);
+}
+
+/* Overlay Pemanggilan Fullscreen */
+.tv-call-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(4, 12, 30, 0.96);
+  backdrop-filter: blur(14px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.tv-overlay-box {
+  background: linear-gradient(135deg, #07152c 0%, #0d234a 100%);
+  border: 3px solid #f59e0b;
+  border-radius: 24px;
+  padding: 2rem 3rem;
+  text-align: center;
+  box-shadow: 0 0 100px rgba(245, 158, 11, 0.45);
+  max-width: 90vw;
+}
+
+.tv-overlay-badge {
+  font-size: clamp(1.2rem, 1.8vw, 2.4rem);
+  font-weight: 800;
+  color: #f59e0b;
+  letter-spacing: 2px;
+  margin-bottom: 0.6rem;
+  text-transform: uppercase;
+}
+
+.tv-overlay-number {
+  font-family: var(--font-mono);
+  font-size: clamp(60px, 8.5vw, 160px);
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.tv-overlay-counter {
+  font-size: clamp(1.8rem, 3.2vw, 3.8rem);
+  font-weight: 900;
+  color: var(--tv-accent-blue);
+  margin-top: 1.0rem;
+}
+
+
+
+/* Penyesuaian proporsi TV: memakai konten awal, tanpa panel tambahan. */
+  .tv-body {
+  grid-template-columns: minmax(0, 64%) minmax(0, 36%);
+}
+
+.tv-main-left-section {
+  display: grid;
+  grid-template-rows: minmax(0, 58%) minmax(0, 42%);
+}
+
+.tv-top-row-video-qr,
+.tv-bottom-cards-row {
+  flex: initial;
+  height: 100%;
+  min-height: 0;
+}
+
+.tv-video-container,
+.tv-skm-card,
+.tv-service-status-card,
+.tv-current-call-card,
+.tv-upcoming-card {
+  min-height: 0;
+}
+
+.tv-skm-card {
+  padding: clamp(0.8rem, 1.1vh, 1.25rem);
+  justify-content: center;
+  gap: clamp(0.55rem, 1vh, 1rem);
+}
+
+.tv-skm-title-text {
+  font-size: clamp(0.92rem, 1.05vw, 1.35rem);
+}
+
+.tv-skm-year {
+  font-size: clamp(1.15rem, 1.45vw, 1.8rem);
+}
+
+.tv-skm-scan-badge {
+  padding: 0.35rem 0.9rem;
+  font-size: clamp(0.72rem, 0.82vw, 0.95rem);
+}
+
+.tv-skm-qr-box {
+  max-width: min(72%, 280px);
+  padding: 0.45rem;
+  border-radius: 12px;
+}
+
+.tv-skm-qr-img {
+  max-height: 25vh;
+}
+
+.tv-skm-link-box {
+  padding: 0.35rem 0.65rem;
+  font-size: clamp(0.58rem, 0.66vw, 0.78rem);
+}
+
+.tv-service-status-card {
+  padding: clamp(0.75rem, 1.1vh, 1.15rem);
+}
+
+.tv-card-header-line {
+  padding-bottom: clamp(0.35rem, 0.7vh, 0.7rem);
+}
+
+.tv-card-header-left {
+  gap: 0.55rem;
+}
+
+.tv-icon-box-kb,
+.tv-icon-box-sk {
+  width: clamp(34px, 2.5vw, 48px);
+  height: clamp(34px, 2.5vw, 48px);
+  border-radius: 10px;
+}
+
+.tv-card-large-title {
+  font-size: clamp(0.9rem, 1.02vw, 1.35rem);
+}
+
+.tv-card-sub-code {
+  font-size: clamp(0.62rem, 0.7vw, 0.82rem);
+}
+
+.tv-badge-buka {
+  padding: 0.22rem 0.5rem;
+  font-size: clamp(0.56rem, 0.62vw, 0.72rem);
+}
+
+.tv-card-body-rich-stack {
+  gap: clamp(0.55rem, 1vh, 0.9rem);
+  margin: clamp(0.45rem, 1vh, 0.9rem) 0;
+}
+
+.tv-rich-stat-box-kb,
+.tv-rich-stat-box-sk,
+.tv-rich-stat-box-est {
+  padding: clamp(0.55rem, 1.05vh, 0.95rem) 0.75rem;
+  border-radius: 10px;
+}
+
+.tv-rich-stat-label {
+  font-size: clamp(0.66rem, 0.78vw, 0.95rem);
+  gap: 0.35rem;
+}
+
+.tv-rich-stat-value-kb,
+.tv-rich-stat-value-sk {
+  font-size: clamp(1.8rem, 2.7vw, 3.9rem);
+  margin-top: 0.1rem;
+}
+
+.tv-rich-stat-unit {
+  font-size: clamp(0.72rem, 0.85vw, 1rem);
+}
+
+.tv-rich-stat-value-est {
+  font-size: clamp(0.9rem, 1.05vw, 1.35rem);
+}
+
+.tv-card-footer-info {
+  padding: 0.35rem 0.55rem;
+  font-size: clamp(0.6rem, 0.7vw, 0.82rem);
+  border-radius: 8px;
+}
+
+.tv-current-call-card {
+  flex: 1.45;
+  padding: clamp(1rem, 1.5vh, 1.6rem);
+  gap: clamp(0.45rem, 0.9vh, 0.9rem);
+}
+
+.tv-upcoming-card {
+  flex: 0.55;
+  padding: clamp(0.65rem, 1vh, 1rem);
+}
+
+.tv-call-large-label {
+  font-size: clamp(1rem, 1.28vw, 1.65rem);
+}
+
+.tv-call-number {
+  font-size: clamp(4.2rem, 6.2vw, 8rem);
+  margin: clamp(0.25rem, 0.8vh, 0.8rem) 0;
+}
+
+.tv-call-divider {
+  margin: clamp(0.35rem, 0.8vh, 0.8rem) 0;
+}
+
+.tv-call-counter-single {
+  font-size: clamp(1.35rem, 1.9vw, 2.7rem);
+}
+
+.tv-call-service {
+  font-size: clamp(0.85rem, 1vw, 1.2rem);
+  line-height: 1.35;
+  max-width: 92%;
+}
+
+.tv-call-chime-info {
+  padding: 0.35rem 0.85rem;
+  font-size: clamp(0.68rem, 0.78vw, 0.95rem);
+}
+
+.tv-upcoming-title {
+  font-size: clamp(0.82rem, 0.95vw, 1.2rem);
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.55rem;
+}
+
+.tv-upcoming-grid {
+  gap: 0.45rem;
+}
+
+.tv-upcoming-item {
+  padding: 0.55rem 0.7rem;
+  border-radius: 9px;
+}
+
+.tv-circle-num {
+  width: 26px;
+  height: 26px;
+  font-size: 0.78rem;
+}
+
+.tv-item-code {
+  font-size: clamp(1.05rem, 1.25vw, 1.55rem);
+}
+
+.tv-item-counter {
+  font-size: clamp(0.72rem, 0.82vw, 1rem);
+}
+/* ==========================================================================
+   PERBAIKAN RESPONSIFITAS SPESIFIK DEVICE (BEBAS DARI OVERLAP / TERPOTONG)
+   ========================================================================== */
+
+/* LAYAR PROFILE PENDEK SEPERTI HP LANDSCAPE / IPAD MINI LANDSCAPE (Height ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ 600px) */
+@media screen and (max-height: 600px) {
+  .tv-header { height: 44px; min-height: 44px; padding: 0 0.4rem; }
+  .tv-logo-box { height: 34px; }
+  .tv-logo-img { height: 24px; }
+  .tv-audio-unlock-btn, .tv-fullscreen-btn, .tv-status-pill { display: none; }
+  .tv-skm-qr-img { max-height: 11vh; }
+  .tv-call-number { font-size: 2.5rem; }
+  .tv-footer-bar { height: 34px; min-height: 34px; font-size: clamp(0.7rem, 1.2vw, 0.86rem); }
+  .tv-info-icon-badge { width: 20px; height: 20px; font-size: 0.72rem; }
+}
+
+/* LAYAR KECIL DENGAN LEBAR SEKITAR 1024px ATAU KURANG */
+@media screen and (max-width: 1024px) {
+  .tv-header { padding: 0 0.5rem; gap: 0.3rem; }
+  .tv-status-pill { display: none; }
+  .tv-audio-unlock-btn, .tv-fullscreen-btn { padding: 3px 6px; font-size: 0.62rem; }
+}
+
+
+@media screen and (max-width: 900px), screen and (orientation: portrait) {
+  .tv-screen {
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+    overflow-y: auto;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .tv-header {
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    padding: 10px;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tv-logo-area {
+    height: auto;
+  }
+
+  .tv-logo-box {
+    height: 48px;
+  }
+
+  .tv-header > div:last-child {
+    flex-wrap: wrap;
+    gap: 8px !important;
+    justify-content: space-between;
+  }
+
+  .tv-header-clock {
+    border-left: none;
+    padding-left: 0;
+  }
+
+  .tv-screen {
+    overflow-x: hidden;
+  }
+
+  .tv-logo-area {
+    width: 100%;
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .tv-logo-box {
+    width: min(46vw, 176px);
+    max-width: 176px;
+    padding: 4px 8px;
+  }
+
+  .tv-logo-img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: 40px;
+  }
+
+  .tv-header-title-box {
+    min-width: 0;
+  }
+
+  .tv-header-tag {
+    white-space: normal;
+    font-size: clamp(0.58rem, 2.4vw, 0.72rem);
+  }
+
+  .tv-header-title {
+    font-size: clamp(0.72rem, 3.15vw, 0.95rem);
+    line-height: 1.14;
+    word-break: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .tv-header > div:last-child {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    align-items: center !important;
+  }
+
+  .tv-audio-unlock-btn,
+  .tv-fullscreen-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 8px 8px;
+    min-width: 0;
+  }
+
+  .tv-header-clock {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .tv-time {
+    font-size: clamp(1rem, 5.2vw, 1.35rem);
+  }
+
+  .tv-date {
+    text-align: center;
+    white-space: normal;
+  }
+  .tv-body {
+    grid-template-columns: 1fr;
+    height: auto;
+    gap: 8px;
+  }
+
+  .tv-main-left-section,
+  .tv-right-col {
+    height: auto;
+    gap: 8px;
+  }
+
+  .tv-top-row-video-qr,
+  .tv-bottom-cards-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .tv-video-container {
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  .tv-skm-card,
+  .tv-service-status-card,
+  .tv-current-call-card,
+  .tv-upcoming-card {
+    min-height: auto;
+  }
+
+  .tv-footer-bar {
+    height: auto;
+    min-height: 42px;
+    grid-template-columns: 1fr;
+    padding: 8px 10px;
+    font-size: clamp(0.84rem, 3.4vw, 1rem);
+  }
+
+  .tv-marquee-track {
+    gap: 1.8rem;
+    animation-duration: 38s;
+  }
+
+  .tv-info-icon-badge {
+    width: 22px;
+    height: 22px;
+  }
+
+  .tv-footer-right {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 560px) {
+
+  .tv-logo-area {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tv-logo-box {
+    width: min(54vw, 176px);
+  }
+
+  .tv-header-title {
+    overflow: visible;
+  }
+
+  .tv-header > div:last-child {
+    grid-template-columns: 1fr;
+  }
+
+  .tv-audio-unlock-btn,
+  .tv-fullscreen-btn {
+    max-width: 240px;
+    justify-self: center;
+  }
+  .tv-call-number {
+    font-size: clamp(2.6rem, 14vw, 4.4rem);
+    letter-spacing: -1px;
+  }
+
+  .tv-card-header-line {
+    align-items: flex-start;
+    gap: 8px;
+    flex-direction: column;
+  }
+}

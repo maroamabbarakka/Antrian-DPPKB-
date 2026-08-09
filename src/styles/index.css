@@ -1,0 +1,358 @@
+:root {
+  /* Civic Modern Color Palette DPPKB Majene */
+  --primary-navy: #0f172a;
+  --primary-navy-light: #1e293b;
+  --accent-teal: #0d9488;
+  --accent-teal-light: #14b8a6;
+  --accent-blue: #0284c7;
+  --accent-blue-light: #38bdf8;
+  --accent-gold: #d97706;
+  --accent-gold-bright: #f59e0b;
+  
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-muted: #f1f5f9;
+  
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  --text-on-dark: #f8fafc;
+  
+  --border-light: #e2e8f0;
+  --border-subtle: #cbd5e1;
+  
+  --color-success: #16a34a;
+  --color-warning: #ea580c;
+  --color-danger: #dc2626;
+
+  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+html,
+#root {
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+/* Glassmorphism & Modern Card Components */
+.card-modern {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  transition: all 0.2s ease-in-out;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-subtle);
+}
+
+/* Button UI Components */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-family: var(--font-family);
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  min-width: 0;
+  white-space: normal;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-teal) 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #0f766e 100%);
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
+}
+
+.btn-gold {
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-bright) 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);
+}
+
+.btn-gold:hover {
+  background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+}
+
+.btn-outline {
+  background: transparent;
+  border-color: var(--border-subtle);
+  color: var(--text-main);
+}
+
+.btn-outline:hover {
+  background: var(--bg-card-muted);
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: #ffffff;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+.btn-success {
+  background: var(--color-success);
+  color: #ffffff;
+}
+
+.btn-success:hover {
+  background: #15803d;
+}
+
+/* Badge Component */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.badge-kb {
+  background: rgba(13, 148, 136, 0.12);
+  color: var(--accent-teal);
+  border: 1px solid rgba(13, 148, 136, 0.3);
+}
+
+.badge-sk {
+  background: rgba(2, 132, 199, 0.12);
+  color: var(--accent-blue);
+  border: 1px solid rgba(2, 132, 199, 0.3);
+}
+
+.badge-status {
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}
+
+.status-waiting { background: #fef3c7; color: #92400e; }
+.status-called { background: #dbeafe; color: #1e40af; animation: pulseCall 1.5s infinite; }
+.status-serving { background: #dcfce7; color: #166534; }
+.status-completed { background: #f1f5f9; color: #475569; }
+.status-noshow { background: #fee2e2; color: #991b1b; }
+.status-no_show { background: #fee2e2; color: #991b1b; }
+.status-canceled { background: #fee2e2; color: #991b1b; }
+.status-transferred { background: #ede9fe; color: #5b21b6; }
+
+@keyframes pulseCall {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+/* Utility layout */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-2 { gap: 8px; }
+.gap-4 { gap: 16px; }
+.gap-6 { gap: 24px; }
+.w-full { width: 100%; }
+
+/* SUPER RESPONSIVE DASHBOARD MEDIA QUERIES (Mobile, Tablet, Desktop) */
+@media (max-width: 1024px) {
+  .dashboard-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+  .dashboard-grid-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid-3 {
+    grid-template-columns: 1fr !important;
+  }
+  .btn {
+    padding: 8px 14px;
+    font-size: 0.88rem;
+  }
+  .app-navbar-container {
+    padding: 10px 14px !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .app-navbar-container > div:first-child {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 100% !important;
+    flex-shrink: 1 !important;
+  }
+
+  .app-navbar-container > div:first-child > div:first-child {
+    max-width: 150px !important;
+    min-width: 0 !important;
+    flex: 0 1 150px !important;
+    padding: 5px 8px !important;
+  }
+
+  .app-navbar-container > div:first-child > div:last-child {
+    min-width: 0 !important;
+    flex: 1 1 0 !important;
+    overflow: hidden !important;
+  }
+
+  .app-navbar-container > div:first-child img {
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 36px !important;
+  }
+
+  .app-navbar-container h1 {
+    font-size: clamp(0.95rem, 5vw, 1.15rem) !important;
+    line-height: 1.1 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .app-navbar-container p,
+  .app-navbar-container span {
+    overflow-wrap: anywhere !important;
+  }
+
+  .app-navbar-menu {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    width: 100%;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    gap: 8px !important;
+    padding-bottom: 0;
+  }
+
+  .app-navbar-menu nav {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .app-navbar-menu .btn,
+  .app-navbar-menu > button {
+    width: 100% !important;
+    min-width: 0 !important;
+    justify-content: center !important;
+    flex-shrink: 1 !important;
+  }
+
+  .app-navbar-menu > div:last-child {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    min-width: 0 !important;
+    flex-shrink: 1 !important;
+  }
+
+  .app-navbar-menu > div:last-child > * {
+    min-width: 0 !important;
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-navbar-container {
+    padding: 10px !important;
+  }
+
+  .app-navbar-container > div:first-child {
+    gap: 10px !important;
+  }
+
+  .app-navbar-container > div:first-child > div:first-child {
+    max-width: 132px !important;
+    flex-basis: 132px !important;
+  }
+
+  .app-navbar-menu > div:last-child {
+    grid-template-columns: 1fr !important;
+  }
+
+  .kiosk-view {
+    padding: 18px 10px !important;
+  }
+
+  .kiosk-view .card-hover {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .kiosk-view h2 {
+    font-size: 1.35rem !important;
+    line-height: 1.24 !important;
+  }
+
+  .kiosk-view h3,
+  .kiosk-view h4 {
+    font-size: 1rem !important;
+    line-height: 1.18 !important;
+  }
+
+  .kiosk-view p,
+  .kiosk-view li,
+  .kiosk-view span {
+    max-width: 100% !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .kiosk-view .badge {
+    font-size: 0.68rem !important;
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "short_name": "Antrean DPPKB",
+  "name": "Sistem Antrean DPPKB Kabupaten Majene",
+  "icons": [
+    {
+      "src": "/Logo_DPPKB.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "display": "standalone",
+  "orientation": "landscape"
+}
