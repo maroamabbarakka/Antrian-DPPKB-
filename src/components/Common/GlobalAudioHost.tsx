@@ -1,33 +1,11 @@
-import React, { useEffect, useRef } from 'react';
-import { queueAudioEngine } from '../../services/audio/QueueAudioEngine';
+// GlobalAudioHost.tsx — Komponen ini tidak lagi diperlukan dalam arsitektur Web Audio baru.
+// Engine baru (QueueAudioEngine v2) menggunakan AudioContext + AudioBufferSourceNode
+// dan tidak membutuhkan persistent HTMLAudioElement.
+// Komponen ini dipertahankan untuk menghindari perubahan import di App.tsx.
+
+import React from 'react';
 
 export const GlobalAudioHost: React.FC = () => {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  useEffect(() => {
-    if (audioRef.current) {
-      queueAudioEngine.bindPlayer(audioRef.current);
-    }
-
-    return () => {
-      queueAudioEngine.unbindPlayer();
-    };
-  }, []);
-
-  return (
-    <audio
-      ref={audioRef}
-      preload="auto"
-      playsInline
-      style={{
-        position: 'fixed',
-        width: '1px',
-        height: '1px',
-        opacity: 0,
-        pointerEvents: 'none',
-        bottom: 0,
-        right: 0
-      }}
-    />
-  );
+  // Tidak ada HTMLAudioElement — semua audio melalui Web Audio API
+  return null;
 };

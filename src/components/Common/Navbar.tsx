@@ -24,10 +24,12 @@ export const Navbar: React.FC = () => {
       const result = await ttsService.testAudio();
       if (result.success) {
         setAudioTestStatus('pass');
-        setAudioTestDetail(`Suara OK — ${result.voice.source || 'TTS'}`);
+        const src = result.steps.voice.success ? 'LOCAL_WAV' : 'N/A';
+        setAudioTestDetail(`Suara OK — ${src}`);
+
       } else {
         setAudioTestStatus('fail');
-        const voiceErr = result.voice.error || 'VOICE_NOT_PLAYED';
+        const voiceErr = result.steps.voice.error || result.steps.context.error || 'VOICE_NOT_PLAYED';
         setAudioTestDetail(`Suara gagal — ${voiceErr}`);
       }
     } catch (err: any) {
@@ -184,7 +186,7 @@ export const Navbar: React.FC = () => {
           title="Buka Layar TV 16:9 di Tab Baru & Mode Fullscreen"
         >
           <Tv size={17} />
-          <span>LAYAR TV 16:9</span>
+          <span>LAYAR TV</span>
           <ExternalLink size={14} style={{ opacity: 0.9 }} />
         </button>
 

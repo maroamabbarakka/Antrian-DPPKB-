@@ -1,43 +1,40 @@
 // ttsService.ts — Adapter Audio Antrean (High Compatibility)
-// Mengarahkan ke QueueAudioEngine terpusat untuk keandalan audio di Smart TV & iOS.
+// Menggunakan QueueAudioEngine — Web Audio + Local Voice Assets.
+// TIDAK ADA translate_tts runtime, speechSynthesis production.
 
 import { queueAudioEngine, AudioTestResult } from './audio/QueueAudioEngine';
-import { buildAnnouncementText, formatCodeSpoken, getServiceSpeechLabel } from './audio/queueAudioText';
 import { ServiceGroup } from '../types/queue';
+
+/** Hasil unlock gagal sebagai AudioTestResult */
+function audioUnlockFailedResult(): AudioTestResult {
+  return {
+    success: false,
+    durationMs: 0,
+    steps: {
+      context: { success: false, error: 'AUDIO_UNLOCK_FAILED' },
+      assets:  { success: false },
+      decode:  { success: false },
+      chime:   { success: false },
+      voice:   { success: false }
+    }
+  };
+}
 
 class TTSService {
   /**
-   * Buka kunci audio dari User Gesture — async, menunggu konfirmasi
-   * persistent player benar-benar berhasil memutar.
+   * Buka kunci audio dari User Gesture.
+   * Mengembalikan true jika AudioContext running dan essential buffers siap.
    */
-  public async unlockAudio(): Promise<boolean> {
+  async unlockAudio(): Promise<boolean> {
     return queueAudioEngine.unlockFromUserGesture();
   }
 
-  public async playChime(): Promise<void> {
+  async playChime(): Promise<void> {
     return queueAudioEngine.playChime();
   }
 
-  public formatCodeSpoken(code: string) {
-    const info = formatCodeSpoken(code);
-    return {
-      letterSpoken: info.letterSpoken,
-      digitsSpoken: info.digitsSpoken,
-      defaultServiceName: getServiceSpeechLabel(info.inferredGroup),
-      inferredGroup: info.inferredGroup as ServiceGroup
-    };
-  }
-
-  public buildAnnouncementText(
-    ticketCode: string,
-    counterName: string,
-    serviceTitle?: string,
-    serviceGroup?: ServiceGroup
-  ): string {
-    return buildAnnouncementText(ticketCode, counterName, serviceTitle, serviceGroup);
-  }
-
-  public announceCall(
+  /** Antreankan panggilan untuk diputar oleh engine */
+  announceCall(
     ticketCode: string,
     counterName: string,
     serviceTitle?: string,
@@ -55,18 +52,18 @@ class TTSService {
     });
   }
 
-  public playTicketIssueChime(_code: string, _serviceTitle?: string): void {
-    // Hening di kios — tidak ada suara saat pengambilan tiket
-  }
+  /** Tidak ada suara saat pengambilan tiket di kios */
+  playTicketIssueChime(_code: string, _serviceTitle?: string): void {}
 
   /**
-   * Tes audio terstruktur — mengembalikan AudioTestResult lengkap.
-   * Tombol "Tes Audio" di Navbar memanggil ini dan menampilkan hasilnya.
-   * CHIME saja tanpa VOICE adalah GAGAL.
+   * Tes audio terstruktur — mengembalikan AudioTestResult lengkap (5 langkah).
+   * Section 37.1: wajib cek hasil unlock sebelum testCallFull().
    */
-  public async testAudio(): Promise<AudioTestResult> {
-    // Pastikan audio terbuka dulu dari user gesture
-    await queueAudioEngine.unlockFromUserGesture();
+  async testAudio(): Promise<AudioTestResult> {
+    const unlocked = await queueAudioEngine.unlockFromUserGesture();
+    if (!unlocked) {
+      return audioUnlockFailedResult();
+    }
     return queueAudioEngine.testCallFull();
   }
 }

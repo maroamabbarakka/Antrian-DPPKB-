@@ -17,9 +17,13 @@ export const DebugOverlay: React.FC = () => {
   });
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'done'>('idle');
   const [testResult, setTestResult] = useState<AudioTestResult | null>(null);
+  const [ctxInfo, setCtxInfo] = useState<Record<string, string | number | undefined>>({});
 
   useEffect(() => {
-    const unsubscribe = queueAudioEngine.subscribeState((state) => setAudioState(state));
+    const unsubscribe = queueAudioEngine.subscribeState((state) => {
+      setAudioState(state);
+      setCtxInfo(queueAudioEngine.getAudioContextInfo());
+    });
     const handleResize = () => {
       setViewport({
         width: window.innerWidth,
@@ -50,8 +54,13 @@ export const DebugOverlay: React.FC = () => {
       setTestResult({
         success: false,
         durationMs: 0,
-        chime: { success: false, error: 'ERROR' },
-        voice: { success: false, error: err?.message || 'ERROR' }
+        steps: {
+          context: { success: false, error: err?.message || 'ERROR' },
+          assets:  { success: false },
+          decode:  { success: false },
+          chime:   { success: false },
+          voice:   { success: false, error: err?.message || 'ERROR' }
+        }
       });
     }
     setTestStatus('done');
@@ -101,16 +110,22 @@ export const DebugOverlay: React.FC = () => {
           <strong style={{ color: audioState === 'READY' || audioState === 'PLAYING' ? '#4ade80' : '#f59e0b' }}>{audioState}</strong>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-          <span style={{ color: '#94a3b8' }}>Web Speech API:</span>
-          <strong style={{ color: 'speechSynthesis' in window ? '#4ade80' : '#f87171' }}>
-            {'speechSynthesis' in window ? 'TERSEDIA' : 'TIDAK TERSEDIA'}
-          </strong>
+          <span style={{ color: '#94a3b8' }}>AudioContext:</span>
+          <strong style={{ color: ctxInfo.state === 'running' ? '#4ade80' : '#f87171' }}>{ctxInfo.state ?? 'N/A'}</strong>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+          <span style={{ color: '#94a3b8' }}>Buffers:</span>
+          <strong style={{ color: '#38bdf8' }}>{queueAudioEngine.getBufferCount()} loaded</strong>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
           <span style={{ color: '#94a3b8' }}>Jaringan:</span>
           <strong style={{ color: navigator.onLine ? '#4ade80' : '#f87171' }}>
             {navigator.onLine ? 'ONLINE' : 'OFFLINE'}
           </strong>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ color: '#94a3b8' }}>UA:</span>
+          <span style={{ color: '#475569', fontSize: '0.68rem', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{navigator.userAgent.substring(0, 40)}</span>
         </div>
       </div>
 
@@ -140,28 +155,16 @@ export const DebugOverlay: React.FC = () => {
           <div style={{ fontWeight: 800, marginBottom: '6px', color: testResult.success ? '#4ade80' : '#f87171' }}>
             {testResult.success ? '✅ AUDIO TEST PASS' : '❌ AUDIO TEST FAILED'}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-            <span style={{ color: '#94a3b8' }}>Chime:</span>
-            <span style={{ color: statusColor(testResult.chime.success), display: 'flex', alignItems: 'center', gap: '4px' }}>
-              {testResult.chime.success ? <CheckCircle2 size={11} /> : <XCircle size={11} />}
-              {testResult.chime.success ? 'PASS' : testResult.chime.error || 'FAIL'}
-            </span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-            <span style={{ color: '#94a3b8' }}>Voice:</span>
-            <span style={{ color: statusColor(testResult.voice.success), display: 'flex', alignItems: 'center', gap: '4px' }}>
-              {testResult.voice.success ? <CheckCircle2 size={11} /> : <XCircle size={11} />}
-              {testResult.voice.success ? testResult.voice.source || 'PASS' : testResult.voice.error || 'FAIL'}
-            </span>
-          </div>
-          {!testResult.voice.success && (
-            <div style={{ marginTop: '4px', color: '#f87171', fontSize: '0.72rem' }}>
-              ⚠ VOICE PLAYBACK FAILED — Suara panggilan tidak terputar
+          {(['context','assets','decode','chime','voice'] as const).map(step => (
+            <div key={step} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+              <span style={{ color: '#94a3b8', textTransform: 'capitalize' }}>{step}:</span>
+              <span style={{ color: testResult.steps[step].success ? '#4ade80' : '#f87171', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {testResult.steps[step].success ? <CheckCircle2 size={11} /> : <XCircle size={11} />}
+                {testResult.steps[step].success ? 'PASS' : (testResult.steps[step].error || 'FAIL')}
+              </span>
             </div>
-          )}
-          <div style={{ color: '#475569', marginTop: '4px', fontSize: '0.72rem' }}>
-            Durasi: {testResult.durationMs} ms
-          </div>
+          ))}
+          <div style={{ color: '#475569', marginTop: '4px', fontSize: '0.72rem' }}>Durasi: {testResult.durationMs} ms</div>
         </div>
       )}
 
