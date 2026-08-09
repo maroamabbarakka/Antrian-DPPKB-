@@ -266,9 +266,42 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const qCallEvents = query(collection(db, 'callEvents'), where('dateStr', '==', dateStr));
     const unsubscribeCalls = onSnapshot(qCallEvents, (snapshot) => {
+      const now = Date.now();
+      const RECENT_THRESHOLD_MS = 2 * 60 * 1000; // 2 menit
+
       if (!callEventsBootstrappedRef.current) {
-        snapshot.docs.forEach((docSnap) => processedCallIdsRef.current.add(docSnap.id));
         callEventsBootstrappedRef.current = true;
+        // Pilihan audit P0: Hanya tandai panggilan lampau (> 2 menit) sebagai processed.
+        // Panggilan aktif baru (< 2 menit) diproses pengumumannya agar tidak hilang saat TV reload.
+        const recentEvents: { id: string; data: any }[] = [];
+
+        snapshot.docs.forEach((docSnap) => {
+          const data = docSnap.data() as any;
+          const ts = data.timestamp || 0;
+          if (now - ts > RECENT_THRESHOLD_MS) {
+            processedCallIdsRef.current.add(docSnap.id);
+          } else {
+            recentEvents.push({ id: docSnap.id, data });
+          }
+        });
+
+        recentEvents.sort((a, b) => (a.data.timestamp || 0) - (b.data.timestamp || 0));
+
+        recentEvents.forEach((event) => {
+          if (!processedCallIdsRef.current.has(event.id)) {
+            processedCallIdsRef.current.add(event.id);
+            if (event.data.ticketCode && event.data.counterName) {
+              triggerCallAnnouncement(
+                event.data.ticketCode,
+                event.data.counterName,
+                event.data.serviceTitle || 'Pelayanan',
+                event.id,
+                event.data.serviceGroup
+              );
+            }
+          }
+        });
+
         return;
       }
 
