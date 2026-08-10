@@ -2,13 +2,16 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // MVP operasional antrean. Catatan: ini terbuka untuk perangkat publik
-    // karena aplikasi belum menerapkan Firebase Auth dan role-based access.
+    // MVP operasional antrean: terbuka untuk perangkat Kios, Operator, dan TV
     match /tickets/{ticketId} {
       allow read, write: if true;
     }
 
     match /sequences/{sequenceId} {
+      allow read, write: if true;
+    }
+
+    match /ticketEvents/{eventId} {
       allow read, write: if true;
     }
 
@@ -25,7 +28,7 @@ service cloud.firestore {
     }
 
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if true;
     }
   }
 }
